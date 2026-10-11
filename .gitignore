@@ -1,0 +1,9 @@
+data/*.txt
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+.pytest_cache/
+results/*.log
+results/phase0/*.npz
+figures/*.png

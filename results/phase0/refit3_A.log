@@ -1,0 +1,9 @@
+/home/claude/hsp90-memory/src/hsp90memory/summaries.py:94: RuntimeWarning: Mean of empty slice
+  return np.nanmean([ck_divergence(s, tau_frames) for s in series_list], 0)
+s0.25_t1_r0: refit modal3 ll=-99205.7, 156 s
+s1.0_t1_r0: refit modal3 ll=-109905.9, 150 s
+s0.5_t10_r0: refit modal3 ll=-92410.3, 154 s
+s0.25_t100_r0: refit modal3 ll=-106611.9, 184 s
+s1.0_t100_r0: refit modal3 ll=-96195.7, 142 s
+s0.5_t10_r1: refit modal3 ll=-110597.5, 102 s
+wrote results/phase0/refit3_A.npz

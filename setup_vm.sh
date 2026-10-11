@@ -5,6 +5,22 @@
 set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/robcovino/hsp90-memory.git}"
+SCRIPT_URL="https://raw.githubusercontent.com/robcovino/hsp90-memory/main/setup_vm.sh"
+
+# Commercial clouds (DigitalOcean, Hetzner, ...) log you in as root. Create a normal user 'ubuntu' with passwordless
+# sudo, copy the SSH key over, and continue as that user, so the rest is identical to de.NBI (which uses 'ubuntu').
+if [ "$(id -u)" = 0 ]; then
+  echo "== running as root: creating user 'ubuntu' and continuing as that user"
+  id ubuntu > /dev/null 2>&1 || adduser --disabled-password --gecos "" ubuntu
+  usermod -aG sudo ubuntu
+  echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-ubuntu && chmod 440 /etc/sudoers.d/90-ubuntu
+  mkdir -p /home/ubuntu/.ssh
+  [ -f /root/.ssh/authorized_keys ] && cp -n /root/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys
+  chown -R ubuntu:ubuntu /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh
+  echo "   (from now on log in as:  ssh ubuntu@<this VM's address>)"
+  exec su - ubuntu -c "curl -fsSL $SCRIPT_URL | bash"
+fi
+
 DIR="$HOME/hsp90-memory"
 
 echo "== system packages"
@@ -48,7 +64,7 @@ cat <<'EOF'
 
 Setup complete. Next, two commands:
 
-  1) sign in once:        cd ~/hsp90-memory && source .venv/bin/activate && claude
+  1) sign in once (as user ubuntu): cd ~/hsp90-memory && source .venv/bin/activate && claude
      (type /login, open the printed URL on your laptop, paste the code back; answer "yes" to trusting the folder; then type /exit)
 
   2) hand the machine to Remote Control:   bash ~/hsp90-memory/start_remote.sh

@@ -6,7 +6,7 @@ models with exact likelihoods, and the simulation-based-inference study of what 
 On a fresh Ubuntu VM (one command, then follow the printed instructions):
 
 ```
-curl -fsSL https://raw.githubusercontent.com/covinolab/hsp90-memory/main/setup_vm.sh | bash
+curl -fsSL https://raw.githubusercontent.com/robcovino/hsp90-memory/main/setup_vm.sh | bash
 ```
 
 Manually: `pip install -e ".[dev,sbi]"` and `python -m pytest`.

@@ -4,7 +4,7 @@
 # Idempotent: safe to run again. Takes a few minutes the first time.
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/covinolab/hsp90-memory.git}"
+REPO_URL="${REPO_URL:-https://github.com/robcovino/hsp90-memory.git}"
 DIR="$HOME/hsp90-memory"
 
 echo "== system packages"

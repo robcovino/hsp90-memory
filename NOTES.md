@@ -231,3 +231,31 @@ the posterior widths on (σ, τ_w, ρ), and the coupling question (ρ, or separa
   per setting (npz), refit log-likelihoods, `phase0_results.json`.
 - `figures/` — `1Thermal_overview.png`, `within_state.png`, `predictive_checks.png`, `phase0_identifiability.png`.
 - Data: `data/1Thermal.txt` … `4Thermal.txt` (not committed; Zenodo 12697153).
+
+## Running on the VM (de.NBI) — hand-off to Claude Code
+
+Repository: https://github.com/robcovino/hsp90-memory (transfer to covinolab later if wanted; links keep working).
+
+On a fresh Ubuntu VM, one line, then follow what it prints:
+
+    curl -fsSL https://raw.githubusercontent.com/robcovino/hsp90-memory/main/setup_vm.sh | bash
+
+It installs packages and Claude Code, clones this repository, creates the Python environment, downloads the four traces
+from Zenodo, and runs the tests. Then `claude` once to sign in (it prints a link to open on the laptop), then
+`bash ~/hsp90-memory/start_remote.sh`, which starts Remote Control inside tmux. The session "hsp90-memory" then appears
+at https://claude.ai/code and in the Claude phone app; everything from here on is done from there.
+
+First message to give the session (copy verbatim):
+
+> Read CLAUDE.md and NOTES.md before anything else. Then, in this order: (1) Rewrite the frame loop of
+> `simulators.simulate_modal_ou` with numba, keeping the numpy version as the reference implementation, and add a test
+> that both produce the same summary statistics on a fixed seed within replicate tolerance. Report the speed-up on one
+> 6-h trace. (2) Write a checkpointed Phase 1 simulation driver: prior over the modal3 mode rates (log-normal around the
+> fitted values, factor 2), sigma_OC and sigma_CO uniform on [0, 1], tau_w log-uniform on [1, 300] s, rho uniform on
+> [-1, 1]; batches of 1000 simulated measurements (4 x 6 h each) written to `results/phase1/batch_XXXX.npz` with
+> parameters and `summaries.summary_vector`, resumable from the last complete batch. (3) Run a 10^4-simulation smoke
+> test, report wall time and the distribution of summaries, and stop. Do not launch the full 10^5 run until I say so.
+> Update NOTES.md with what you did and the timings.
+
+After approving the smoke test: "proceed with Phase 1 step 2" (full run, NPE training, simulation-based calibration,
+predictive checks on the real traces — see CLAUDE.md, Next steps).

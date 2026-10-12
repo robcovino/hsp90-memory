@@ -6,8 +6,12 @@ class's own simulator and settings (<dir>/settings.json). Statistics: summaries.
 curves on a fixed grid. For the data the same. Per statistic and class: predictive percentile of the data and
 z = (data - mean) / sd; counts outside the central 95 % band; sum of z^2.
 
+Class specs: label:<dir>:<npe tag> (NPE posterior, simulated with the class's SBI simulator), or
+label:exact:<bayes tag> (exact-likelihood MCMC posterior results/exact/bayes_<tag>_samples.npz; each draw simulated
+exactly from its generator with simulators.simulate_amm; grid-OU models on a 15-point grid).
+
 Usage: python scripts/phase1_ppc_classes.py --name all_v2 \\
-          --classes modal3-OU:results/phase1_m3ou_v2:m3ou_v2 modal4:results/phase1_m4:m4 ... \\
+          --classes modal3-OU:results/phase1_m3ou_v2:m3ou_v2 modal4:results/phase1_m4:m4 modal5x:exact:modal5 ... \\
           [--plugin modal3 modal4] [--n 200] [--workers 4]
 Outputs: results/phase1_classes/ppc_<name>.{json,npz}, figures/phase1_ppc_<name>.png
 """
@@ -43,6 +47,14 @@ def describe(Y):
 def job_class(args):
     S, p, seed = args
     return describe(list(simulate_one(S, p, seed)))
+
+
+def job_exact(args):
+    name, couple, phi, seed = args
+    import bayes_exact as be
+    T = be.Target(name, 15, couple)
+    Q = T.model.Q(T.to_theta(phi))
+    return describe(list(sim.simulate_amm(Q, T.model.classes, 216000, n_rep=4, seed=seed)))
 
 
 def job_plugin(args):
@@ -84,6 +96,14 @@ def main():
     with get_context("fork").Pool(a.workers) as pool:
         for spec in a.classes:
             label, d, tag = spec.split(":")
+            if d == "exact":
+                js = json.load(open(f"results/exact/bayes_{tag}.json")); z = np.load(f"results/exact/bayes_{tag}_samples.npz")
+                ph = z["phi"].reshape(-1, z["phi"].shape[-1]); ph = ph[rng.choice(len(ph), a.n, replace=False)]
+                res[label] = pool.map(job_exact, [(js["args"]["name"], js["args"]["couple"], ph[i], 800000 + i)
+                                                  for i in range(a.n)], chunksize=4)
+                meta[label] = {"bayes": tag, "kind": "exact-likelihood posterior predictive", "simulator": "simulate_amm"}
+                print(f"{label} done {time.time() - t0:.0f} s", flush=True)
+                continue
             S = json.load(open(Path(d) / "settings.json"))
             z = np.load(Path(d) / f"npe_{tag}_posterior_data.npz")
             pn = [str(x) for x in z["names"]]

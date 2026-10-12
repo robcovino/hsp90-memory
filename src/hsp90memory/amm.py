@@ -16,6 +16,7 @@ Model families
   general(kO,kC):  fully connected kO open + kC closed states, all rates free (likelihood ceiling).
 """
 import numpy as np
+import numba
 from scipy.linalg import expm
 from scipy.optimize import minimize
 
@@ -66,6 +67,66 @@ def modal(n_modes, db=True):
     for m in range(n_modes - 1):
         init += [np.log(1 / 900.), np.log(1 / 500.), np.log(1 / 900.)] + ([np.log(1 / 500.)] if not db else [])
     return Model(f"modal{n_modes}" + ("" if db else "_noDB"), classes, build, n_par, np.array(init))
+
+
+def ou_grid(n_grid=15, z_max=3.5):
+    """Unit-variance Ornstein-Uhlenbeck coordinate on a grid, square-root approximation of the Fokker-Planck
+    operator for U(z) = z^2/2. Returns (z, R1): z rescaled so that the discrete stationary distribution has unit
+    variance, and the generator R1 rescaled so that its slowest relaxation time is exactly 1 (multiply by 1/tau)."""
+    z = np.linspace(-z_max, z_max, n_grid); h = z[1] - z[0]; U = z ** 2 / 2
+    R = np.zeros((n_grid, n_grid))
+    for i in range(n_grid - 1):
+        R[i, i + 1] = np.exp(-(U[i + 1] - U[i]) / 2) / h ** 2
+        R[i + 1, i] = np.exp(-(U[i] - U[i + 1]) / 2) / h ** 2
+    R = _finalize(R)
+    pz = stationary(R); z = z / np.sqrt(np.sum(pz * z ** 2))
+    ev = np.sort(np.linalg.eigvals(R).real)[::-1]
+    return z, R / (-ev[1])
+
+
+def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC"):
+    """modal(n_modes) with the open->closed rate (couple='OC'), or both rates (couple='both'), modulated by one
+    unit-variance OU coordinate z on a grid (the joint chain is a finite AMM; the gauge is fixed by unit variance and
+    relaxation time tau_w):  kOC_m(z) = kOC_m exp(sigma_OC z),  kCO_m(z) = kCO_m exp(sigma_CO z).
+    Mode switching does not depend on z and z does not depend on (mode, conformation): the same model as
+    simulators.simulate_modal_ou with rho = +-1 (or sigma_CO = 0). Not in detailed balance for sigma > 0.
+    couple='eq': equilibrium version. Same rates kOC_m exp(sigma_OC z), but z relaxes in U_O(z) = z^2/2 while open
+    and in U_C(z) = U_O(z) - sigma_OC z while closed (the closed state tilts the slow coordinate), so that every
+    cycle of the joint chain is balanced (detailed balance holds if it holds for modal(n_modes)). Parameters as 'OC'.
+    Parameters: the modal(n_modes) log-rates, then log sigma_OC, log tau_w (couple='OC'), or log sigma_OC,
+    sigma_CO (signed), log tau_w (couple='both'). States ordered (z_0: O_0, C_0, O_1, ...), (z_1: ...), ..."""
+    base = modal(n_modes); K2 = base.K; nb = base.n_par
+    z, R1 = ou_grid(n_grid, z_max)
+    classes = list(base.classes) * n_grid
+    O = np.arange(0, K2, 2); C = O + 1
+
+    def build_from(theta):
+        Q0 = base.Q(theta[:nb]).copy(); np.fill_diagonal(Q0, 0)
+        if couple in ("OC", "eq"):
+            sOC, sCO, tau = np.exp(theta[nb]), 0.0, np.exp(theta[nb + 1])
+        else:
+            sOC, sCO, tau = np.exp(theta[nb]), theta[nb + 1], np.exp(theta[nb + 2])
+        if couple == "eq":
+            S = np.sqrt(np.clip(R1 * R1.T, 0, None))                     # symmetric part of the SQRA generator
+            UO = -np.log(stationary(R1)); UC = UO - sOC * z
+            RC = S * np.exp(-(UC[None, :] - UC[:, None]) / 2); np.fill_diagonal(RC, 0); RC = _finalize(RC)
+            PO = np.zeros((K2, K2)); PO[O, O] = 1; PC = np.zeros((K2, K2)); PC[C, C] = 1
+            Q = np.kron(R1 / tau, PO) + np.kron(RC / tau, PC)
+        else:
+            Q = np.kron(R1 / tau, np.eye(K2))
+        for i in range(n_grid):
+            Qi = Q0.copy()
+            Qi[O, C] *= np.exp(sOC * z[i]); Qi[C, O] *= np.exp(sCO * z[i])
+            Q[i * K2:(i + 1) * K2, i * K2:(i + 1) * K2] += Qi
+        return _finalize(Q)
+
+    n_extra = 3 if couple == "both" else 2
+    init = np.r_[base.init, [np.log(0.3), 0.0, np.log(100.0)] if couple == "both" else [np.log(0.3), np.log(100.0)]]
+    suffix = {"OC": "", "both": "2", "eq": "eq"}[couple]
+    m = Model(f"modal{n_modes}_ou{suffix}_g{n_grid}", classes, None, nb + n_extra, init)
+    m.Q = build_from
+    m.base, m.n_grid, m.z, m.couple = base, n_grid, z, couple
+    return m
 
 
 def general(kO, kC):
@@ -141,6 +202,120 @@ def loglik(model, theta, dwells_list, block=32):
         sm = alpha @ last
         if not (sm > 0): return -np.inf
         total += ll + np.log(sm)
+    return total
+
+
+@numba.njit(cache=True)
+def _forward_eig(dw, dc, alpha0, lam0, V0, W0, u0, lam1, V1, W1, u1):
+    """Forward recursion with Pcc^n = V diag(lam^n) V^-1 for both classes; W_c = V_c^-1 P_cd, u_c = V_c^-1 1."""
+    terms = np.empty(dw.size)
+    return _forward_eig_terms(dw, dc, alpha0, lam0, V0, W0, u0, lam1, V1, W1, u1, terms)
+
+
+@numba.njit(cache=True)
+def _forward_eig_terms(dw, dc, alpha0, lam0, V0, W0, u0, lam1, V1, W1, u1, terms):
+    """As _forward_eig; also writes log p(dwell i | dwells < i) into terms (the last term includes censoring)."""
+    N = dw.size; ll = 0.0
+    alpha = alpha0.astype(np.complex128)
+    for i in range(N):
+        c = dc[i]; n = dw[i] - 1
+        if c == 0:
+            lam, V, W, u = lam0, V0, W0, u0
+        else:
+            lam, V, W, u = lam1, V1, W1, u1
+        k = lam.size
+        beta = np.zeros(k, np.complex128)
+        for j in range(k):
+            acc = 0j
+            for l in range(k):
+                acc += alpha[l] * V[l, j]
+            beta[j] = acc * lam[j] ** n
+        if i < N - 1:
+            kd = W.shape[1]; new = np.zeros(kd, np.complex128); s = 0.0
+            for j in range(kd):
+                acc = 0j
+                for l in range(k):
+                    acc += beta[l] * W[l, j]
+                new[j] = acc.real; s += acc.real
+            if not (s > 0):
+                return -np.inf
+            terms[i] = np.log(s); ll += terms[i]; alpha = new / s
+        else:
+            acc = 0j
+            for l in range(k):
+                acc += beta[l] * u[l]
+            if not (acc.real > 0):
+                return -np.inf
+            terms[i] = np.log(acc.real); ll += terms[i]
+    return ll
+
+
+def _eig_class(P, ic, id_):
+    Pcc = P[np.ix_(ic, ic)]
+    lam, V = np.linalg.eig(Pcc)
+    if np.linalg.cond(V) > 1e10:
+        raise np.linalg.LinAlgError("ill-conditioned eigenvectors")
+    Vi = np.linalg.inv(V)
+    return (lam.astype(np.complex128), np.ascontiguousarray(V, np.complex128),
+            np.ascontiguousarray(Vi @ P[np.ix_(ic, id_)], np.complex128),
+            np.ascontiguousarray(Vi @ np.ones(len(ic)), np.complex128))
+
+
+def loglik_Q(Q, classes, dwells_list):
+    """Exact log-likelihood of the dwell sequences for generator Q (any size), same as `loglik` but with an
+    O(k^2)-per-dwell forward pass (numba) on the eigendecomposition of the within-class blocks of P = expm(Q dt).
+    Falls back to `loglik_slow`-style cumulative powers if an eigenvector basis is ill-conditioned."""
+    Q = np.asarray(Q, float)
+    if not np.all(np.isfinite(Q)): return -np.inf
+    classes = np.asarray(classes)
+    P = expm(Q * DT); pi = stationary(Q)
+    idx = [np.flatnonzero(classes == c) for c in (0, 1)]
+    try:
+        e0 = _eig_class(P, idx[0], idx[1]); e1 = _eig_class(P, idx[1], idx[0])
+    except np.linalg.LinAlgError:
+        return _loglik_powers(P, pi, idx, dwells_list)
+    total = 0.0
+    for dw, dc in dwells_list:
+        c0 = dc[0]; a0 = pi[idx[c0]]; s = a0.sum()
+        if not (s > 0): return -np.inf
+        ll = _forward_eig(np.asarray(dw, np.int64), np.asarray(dc, np.int64), a0 / s, *e0, *e1)
+        if not np.isfinite(ll): return -np.inf
+        total += ll
+    return total
+
+
+def loglik_terms(Q, classes, dwells_list):
+    """Per-dwell predictive log-likelihood terms log p(dwell_i | earlier dwells of the trace), one array per trace;
+    the first term of a trace conditions on its first-frame class. Sums equal loglik_Q."""
+    Q = np.asarray(Q, float); classes = np.asarray(classes)
+    P = expm(Q * DT); pi = stationary(Q)
+    idx = [np.flatnonzero(classes == c) for c in (0, 1)]
+    e0 = _eig_class(P, idx[0], idx[1]); e1 = _eig_class(P, idx[1], idx[0])
+    out = []
+    for dw, dc in dwells_list:
+        a0 = pi[idx[dc[0]]]; t = np.empty(len(dw))
+        _forward_eig_terms(np.asarray(dw, np.int64), np.asarray(dc, np.int64), a0 / a0.sum(), *e0, *e1, t)
+        out.append(t)
+    return out
+
+
+def _loglik_powers(P, pi, idx, dwells_list):
+    total = 0.0
+    for dw, dc in dwells_list:
+        nmax = int(dw.max()); pw = {}
+        for c in (0, 1):
+            Pcc = P[np.ix_(idx[c], idx[c])]; k = len(idx[c])
+            arr = np.empty((nmax + 1, k, k)); arr[0] = np.eye(k)
+            for n in range(1, nmax + 1): arr[n] = arr[n - 1] @ Pcc
+            pw[c] = arr
+        alpha = pi[idx[dc[0]]]; alpha = alpha / alpha.sum(); ll = 0.0
+        for i in range(len(dw)):
+            c = dc[i]; alpha = alpha @ pw[c][dw[i] - 1]
+            if i < len(dw) - 1: alpha = alpha @ P[np.ix_(idx[c], idx[1 - c])]
+            sm = alpha.sum()
+            if not (sm > 0): return -np.inf
+            ll += np.log(sm); alpha = alpha / sm
+        total += ll
     return total
 
 

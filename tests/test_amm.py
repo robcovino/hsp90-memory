@@ -39,3 +39,39 @@ def test_modal_ou_sigma_zero_matches_amm_populations():
     X = sim.simulate_modal_ou(kOC, kCO, SO, SC, 0.0, 10.0, 0.0, 100000, n_rep=4, seed=1)
     Y = sim.simulate_amm(Q, m.classes, 100000, n_rep=4, seed=2)
     assert abs(X.mean() - Y.mean()) < 0.03
+
+
+def test_loglik_Q_matches_reference_and_terms_sum():
+    m = amm.modal(3)
+    X = sim.simulate_amm(m.Q(m.init), m.classes, 30000, n_rep=2, seed=7)
+    dl = _dwells_from(X); th = m.init + 0.1
+    a = amm.loglik(m, th, dl); b = amm.loglik_Q(m.Q(th), m.classes, dl)
+    assert abs(a - b) < 1e-6
+    assert abs(sum(t.sum() for t in amm.loglik_terms(m.Q(th), m.classes, dl)) - b) < 1e-6
+
+
+def test_modal_ou_reduces_to_modal_and_eq_is_balanced():
+    m = amm.modal(2); X = sim.simulate_amm(m.Q(m.init), m.classes, 20000, n_rep=2, seed=8); dl = _dwells_from(X)
+    for couple in ("OC", "eq"):
+        mo = amm.modal_ou(2, n_grid=7, couple=couple)
+        th = np.r_[m.init, np.log(1e-9), np.log(50.0)]
+        assert abs(amm.loglik_Q(mo.Q(th), mo.classes, dl) - amm.loglik(m, m.init, dl)) < 1e-5
+    mo = amm.modal_ou(3, n_grid=9, couple="eq"); Q = mo.Q(np.r_[amm.modal(3).init, np.log(0.5), np.log(100.0)])
+    F = amm.stationary(Q)[:, None] * Q; np.fill_diagonal(F, 0)
+    assert np.abs(F - F.T).max() < 1e-12 * F.max()
+    z, R = amm.ou_grid(15); pz = amm.stationary(R)
+    assert abs(np.sum(pz * z ** 2) - 1) < 1e-12 and abs(np.sort(np.linalg.eigvals(R).real)[-2] + 1) < 1e-10
+
+
+def test_grid_ou_amm_matches_ou_simulator():
+    """The grid-OU AMM (simulated exactly from its generator) and simulate_modal_ou_fast (sigma_CO = 0) are the same
+    model: all summary statistics agree within replicate tolerance."""
+    import sys; from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent)); import test_simulators as T
+    m4 = amm.modal(4); th = m4.init
+    mo = amm.modal_ou(4, n_grid=21)
+    A = T._summaries(sim.simulate_amm(mo.Q(np.r_[th, np.log(0.6), np.log(60.0)]), mo.classes, T.NF, n_rep=T.R * T.NT, seed=3))
+    B = T._summaries(sim.simulate_modal_ou_fast(*sim.modal_params_from_Q(m4.Q(th)), (0.6, 0.0), 60.0, 0.0, T.NF,
+                                                 n_rep=T.R * T.NT, seed=4))
+    z = T._z(A, B)
+    assert np.abs(z).max() < 4.5 and (np.abs(z) > 2).mean() < 0.1, np.abs(z).max()

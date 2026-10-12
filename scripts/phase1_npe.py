@@ -24,8 +24,9 @@ import matplotlib.pyplot as plt
 from sbi.inference import NPE
 from sbi.neural_nets import posterior_nn
 from sbi.neural_nets.embedding_nets import FCEmbedding
-from sbi.utils import MultipleIndependent
-from sbi.diagnostics import run_sbc, check_sbc, run_tarp, check_tarp
+from sbi.utils import MultipleIndependent, within_support
+from sbi.diagnostics import check_sbc, check_tarp
+from sbi.diagnostics.tarp import _run_tarp, get_tarp_references
 from hsp90memory import io, summaries as sm
 
 D = Path("results/phase1")
@@ -107,8 +108,8 @@ def main():
     od, fd = Path(a.outdir), Path(a.figdir); od.mkdir(parents=True, exist_ok=True); fd.mkdir(exist_ok=True)
     torch.set_num_threads(a.threads); torch.manual_seed(a.seed); np.random.seed(a.seed)
     out_pt, out_js = od / f"npe_{a.tag}.pt", od / f"npe_{a.tag}.json"
-    if out_pt.exists() or out_js.exists():
-        sys.exit(f"{out_pt} exists; choose a new --tag (results are never overwritten)")
+    if out_js.exists():
+        sys.exit(f"{out_js} exists; choose a new --tag (results are never overwritten)")
     t_start = time.time()
 
     B, X, P, names, settings = load_batches(Path(a.sims))
@@ -121,51 +122,67 @@ def main():
           f"(dropped {[n for n in names if n not in pp.names]}, imputed {len(pp.partial)})", flush=True)
 
     prior = make_prior(settings)
-    emb = FCEmbedding(input_dim=xtr.shape[1], output_dim=a.embed, num_layers=3, num_hiddens=256)
-    de = posterior_nn("nsf", hidden_features=a.hidden, num_transforms=a.transforms, embedding_net=emb)
-    inf = NPE(prior=prior, density_estimator=de, show_progress_bars=False)
-    inf.append_simulations(ttr, xtr)
-    t0 = time.time()
-    est = inf.train(training_batch_size=a.batch, learning_rate=a.lr, stop_after_epochs=20, max_num_epochs=a.max_epochs)
-    t_train = time.time() - t0
-    s = inf._summary
-    print(f"trained in {t_train:.0f} s, {s['epochs_trained'][-1]} epochs, best val log prob "
-          f"{s['best_validation_loss'][-1]:.3f}" if "best_validation_loss" in s else "", flush=True)
-    posterior = inf.build_posterior(est)
-    torch.save({"posterior": posterior, "preproc": pickle.dumps(pp), "train_names": TRAIN_NAMES}, out_pt)
+    if out_pt.exists():
+        # a run whose evaluation did not finish: reuse the trained estimator (same data, split and preprocessing)
+        saved = torch.load(out_pt, weights_only=False)
+        posterior = saved["posterior"]; s = saved.get("summary", {}); t_train = saved.get("train_time_s", np.nan)
+        assert pickle.loads(saved["preproc"]).names == pp.names
+        print(f"loaded trained posterior from {out_pt}", flush=True)
+    else:
+        emb = FCEmbedding(input_dim=xtr.shape[1], output_dim=a.embed, num_layers=3, num_hiddens=256)
+        de = posterior_nn("nsf", hidden_features=a.hidden, num_transforms=a.transforms, embedding_net=emb)
+        inf = NPE(prior=prior, density_estimator=de, show_progress_bars=False)
+        inf.append_simulations(ttr, xtr)
+        t0 = time.time()
+        est = inf.train(training_batch_size=a.batch, learning_rate=a.lr, stop_after_epochs=20,
+                        max_num_epochs=a.max_epochs)
+        t_train = time.time() - t0
+        s = {k: [float(v) for v in vv] for k, vv in inf._summary.items() if isinstance(vv, list)}
+        print(f"trained in {t_train:.0f} s, {s['epochs_trained'][-1]:.0f} epochs, best validation loss (-log q) "
+              f"{s['best_validation_loss'][-1]:.3f}", flush=True)
+        posterior = inf.build_posterior(est)
+        torch.save({"posterior": posterior, "preproc": pickle.dumps(pp), "train_names": TRAIN_NAMES,
+                    "summary": s, "train_time_s": t_train}, out_pt)
 
-    # held-out log probability of the true parameters
+    # held-out log probability of the true parameters (flow density, without the leakage normalisation)
     with torch.no_grad():
-        lp_test = posterior.log_prob_batched(tte.unsqueeze(0), x=xte).squeeze(0).numpy() \
-            if hasattr(posterior, "log_prob_batched") else np.array([float(posterior.log_prob(tte[i:i + 1], x=xte[i]))
-                                                                     for i in range(len(xte))])
+        lp_test = np.concatenate([posterior.log_prob_batched(tte[i:i + 100].unsqueeze(0), x=xte[i:i + 100],
+                                                             norm_posterior=False).squeeze(0).numpy()
+                                  for i in range(0, len(xte), 100)])
 
-    # SBC and TARP on held-out simulations
+    # SBC and TARP on held-out simulations; posterior samples drawn in chunks to bound memory
     t0 = time.time()
-    ranks, dap = run_sbc(tte, xte, posterior, num_posterior_samples=a.n_post, show_progress_bar=False)
-    stats = check_sbc(ranks, tte, dap, num_posterior_samples=a.n_post)
-    ecp, alpha = run_tarp(tte, xte, posterior, num_posterior_samples=a.n_post, show_progress_bar=False)
+    S = torch.cat([posterior.sample_batched((a.n_post,), x=xte[i:i + 50], show_progress_bars=False)
+                   for i in range(0, len(xte), 50)], 1)                        # (n_post, n_sbc, 16)
+    ranks = (S < tte.unsqueeze(0)).sum(0).float()                               # marginal ranks
+    stats = check_sbc(ranks, tte, S[0], num_posterior_samples=a.n_post)
+    ecp, alpha = _run_tarp(S, tte, get_tarp_references(tte), z_score_theta=True)
     atc, ks_p = check_tarp(ecp, alpha)
     t_sbc = time.time() - t0
     # per-parameter marginal coverage of central credible intervals, and posterior contraction
     levels = np.array([0.5, 0.8, 0.9, 0.95])
     r = ranks.numpy() / a.n_post
     cov = {TRAIN_NAMES[i]: [float(np.mean(np.abs(r[:, i] - 0.5) <= l / 2)) for l in levels] for i in range(16)}
-    post_sd = []; post_err = []
-    for i in range(min(200, len(xte))):
-        smp = posterior.sample((500,), x=xte[i], show_progress_bars=False).numpy()
-        post_sd.append(smp.std(0)); post_err.append(np.abs(np.median(smp, 0) - tte[i].numpy()))
+    Sn = S.numpy()
+    post_sd = Sn.std(0); post_err = np.abs(np.median(Sn, 0) - tte.numpy())
     prior_sd = T[train].std(0)
     contraction = 1 - (np.mean(post_sd, 0) / prior_sd) ** 2
+    np.savez(od / f"npe_{a.tag}_sbc.npz", ranks=ranks.numpy(), theta=tte.numpy(), post_median=np.median(Sn, 0),
+             post_sd=post_sd, names=np.array(TRAIN_NAMES))
+    del S, Sn
 
     # posterior for the data
     xo = torch.tensor(pp(observed_summary()), dtype=torch.float32)
     so = posterior.sample((20000,), x=xo, show_progress_bars=False).numpy()
+    with torch.no_grad():
+        raw = posterior.posterior_estimator.sample((20000,), condition=xo.reshape(1, -1)).reshape(-1, 16)
+    leak = float(1 - within_support(prior, raw).float().mean())
     q = np.quantile(so, [0.05, 0.25, 0.5, 0.75, 0.95], 0)
     post_data = {n: {"q05": q[0, i], "q25": q[1, i], "median": q[2, i], "q75": q[3, i], "q95": q[4, i],
                      "mean": float(so[:, i].mean()), "sd": float(so[:, i].std())} for i, n in enumerate(TRAIN_NAMES)}
     post_data["P(sigma_OC<0.1)"] = float(np.mean(so[:, 12] < 0.1)); post_data["P(sigma_CO<0.1)"] = float(np.mean(so[:, 13] < 0.1))
     post_data["P(max sigma<0.1)"] = float(np.mean(np.maximum(so[:, 12], so[:, 13]) < 0.1))
+    post_data["leakage_outside_prior"] = leak
     post_data["corr_disorder"] = np.corrcoef(so[:, DISORDER].T).tolist()
     np.savez(od / f"npe_{a.tag}_posterior_data.npz", samples=so, names=np.array(TRAIN_NAMES), x_obs=xo.numpy())
 
@@ -173,7 +190,7 @@ def main():
            "n_test": int(len(xte)), "test_batches": a.test_batches, "summary_dim": int(xtr.shape[1]),
            "summary_names": pp.names, "train_time_s": t_train, "sbc_time_s": t_sbc,
            "total_time_s": time.time() - t_start,
-           "training": {k: [float(v) for v in vv] for k, vv in s.items() if isinstance(vv, list)},
+           "training": s,
            "heldout_logprob_mean": float(np.mean(lp_test)),
            "sbc": {"ks_pvals": dict(zip(TRAIN_NAMES, stats["ks_pvals"].numpy().tolist())),
                    "c2st_ranks": dict(zip(TRAIN_NAMES, stats["c2st_ranks"].numpy().ravel().tolist())),
@@ -181,7 +198,9 @@ def main():
            "tarp": {"atc": float(atc), "ks_pval": float(ks_p)},
            "coverage_levels": levels.tolist(), "marginal_coverage": cov,
            "contraction": dict(zip(TRAIN_NAMES, contraction.tolist())),
-           "median_abs_error_heldout": dict(zip(TRAIN_NAMES, np.mean(post_err, 0).tolist())),
+           "mean_abs_error_heldout": dict(zip(TRAIN_NAMES, np.mean(post_err, 0).tolist())),
+           "heldout_post_sd_mean": dict(zip(TRAIN_NAMES, np.mean(post_sd, 0).tolist())),
+           "prior_sd": dict(zip(TRAIN_NAMES, prior_sd.tolist())),
            "posterior_data": post_data}
     json.dump(rep, open(out_js, "w"), indent=1, default=float)
 

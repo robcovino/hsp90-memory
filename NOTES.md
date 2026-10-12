@@ -243,11 +243,105 @@ Smoke test, 10^4 simulations (batches 0–9; they are the first 10 batches of th
   local-rate histograms (0.88–0.92) and the CK tail from q0 = closed at 50–140 s (0.74–0.79). The prior covers
   the data. No summary is degenerate apart from sv2d_0.
 
+Full run, 10^5 simulations (batches 0–99; seed 20261012): 90 batches after the smoke test in 10,950 s wall
+(3.04 h; 0.46–0.52 s per simulation per worker), ~97 MB per worker throughout.
+
+## Phase 1 — NPE, calibration and posterior for the data (2026-10-12, tag v1)
+
+Setup (`scripts/phase1_npe.py --tag v1`; `results/phase1/npe_v1.{pt,json}`, `npe_v1_sbc.npz`,
+`npe_v1_posterior_data.npz`, logs `npe_v1.log`, `npe_v1_eval.log`; figures `figures/phase1_npe_v1_*.png`).
+- Trained on 99,000 simulations, with batch 0 (1000 simulations) held out for calibration.
+- Parameters: the 12 modal3 log-rates, sigma_OC, sigma_CO, log10 tau_w and rho.
+- Summaries: 115 = 126 − 12 structural CK NaNs − sv2d_0, plus 2 imputation indicators.
+- Network: NSF (5 transforms, 128 hidden) on an MLP embedding (3 x 256 -> 64), z-scored inputs.
+- Training: converged after 99 epochs in 3021 s on 4 threads; best validation loss −5.94 (held-out mean log q of the
+  true parameters +6.02).
+- The first evaluation was OOM-killed at 7.5 GB: sbi's `log_prob_batched` with leakage normalisation samples per
+  test point. The evaluation now draws posterior samples in chunks, computes ranks and TARP from them, and resumes
+  from the saved estimator. It takes 163 s and 1.3 GB.
+
+Calibration (1000 held-out simulations x 1000 posterior samples):
+- Joint: TARP ATC −0.011 (KS p = 1.00).
+- Marginal coverage of central intervals within 0.01–0.03 of nominal for all 16 parameters (50/80/90/95 %).
+- SBC rank KS p > 0.09 for 12 of 16. The exceptions:
+  - log10 tau_w (p = 0.002): mildly overconfident, coverage 0.74/0.87/0.93 at 80/90/95 %; posterior medians shrink
+    towards the centre for truths near either prior edge (bias +0.21 below 3 s, −0.16 above 100 s).
+  - sigma_CO (p = 0.02): cannot resolve sigma_CO < 0.1 (bias +0.10 there).
+  - log_a0, log_b0 (p = 0.03, 0.01): the 1/(2–5 days) O_0<->O_1 rates, which the data do not inform.
+- Posterior contraction (1 − var_post/var_prior), mean over the held-out set:
+  - within-mode rates 0.72–0.98;
+  - switching rates 0.30–0.60;
+  - sigma_OC 0.89, sigma_CO 0.88, log10 tau_w 0.91, rho 0.66.
+
+Posterior for the data (median, 90 % interval):
+- sigma_OC = 0.38 [0.29, 0.45]; P(sigma_OC < 0.1) = 0.003.
+- sigma_CO = 0.14 [0.03, 0.26]; P(sigma_CO < 0.1) = 0.34.
+- P(both < 0.1) = 2e-4: within the modal3 skeleton the discrete model (sigma = 0) is excluded.
+- tau_w = 180 s [37, 291 s]: piled against the prior bound (300 s); P(tau_w > 100 s) = 0.76.
+- rho = 0.40 [−0.51, 0.95] (P(rho > 0) = 0.77): weakly informed.
+- Within-mode rates (geometric medians) stay close to the modal3 ML values, except kOC in the open-biased mode:
+  0.021 [0.016, 0.032] vs 0.034 s^-1 (longer open dwells there). That marginal has a small second mode (4 %) near
+  the ML value.
+- Leakage outside the prior support for the data: 7.6 % (rejected).
+
+The disorder is in kOC (the rate of leaving the open state) and is slow: minutes, comparable to mode switching
+(episodes 8–16 min). kCO is compatible with no disorder. This fits the q0 dependence of the CK memory (stronger from
+closed, i.e. after a long open dwell) and the earlier finding that the hidden variable modulates the two rates
+differently.
+
+Posterior-predictive checks (`scripts/phase1_ppc.py --tag v1`; `results/phase1/ppc_v1.{json,npz}`,
+`figures/phase1_ppc_v1.png`; 253 s). Setup: 200 measurements from 200 posterior draws, against 200 measurements each
+from modal3 and modal4 at their ML generators (exact AMM simulator). For each of the 113 finite statistics, the data's
+predictive percentile and z score:
+
+| model | data outside 95 % band | \|z\| > 3 | sum z^2 |
+|---|---|---|---|
+| modal-OU (posterior predictive) | 12 / 113 | 2 | 159 |
+| modal4 (ML plug-in) | 18 / 113 | 12 | 479 |
+| modal3 (ML plug-in) | 40 / 113 | 29 | 1100 |
+
+- modal-OU reproduces what modal4 misses:
+  - the CK tail at 50–200 s, from both q0 (modal4 z = 4–7; modal-OU z ≈ 2.3, data at the upper edge of the band);
+  - the ACF at 60–200 s (modal4 z = 4–5; modal-OU 2.0);
+  - the fast-episode Fano factor, partly: data 5.1; modal-OU 6.1 [4.8, 7.6] (5–95 %) overshoots it, while modal3
+    4.4 [3.7, 5.3] and modal4 4.2 [3.5, 5.1] undershoot it. The data lie between the continuous and discrete
+    predictions.
+- modal-OU misses what modal4's frozen mode captures:
+  - the extreme open tail (99.9 % open-dwell quantile z = +4.2): the data have open dwells up to ~500 s, while
+    modal-OU's open survival falls off above ~250 s;
+  - too much weight at 50–150 s open (90 % quantile z = −3.0);
+  - the 99.9 % closed quantile (z = +2.7).
+  The slow kOC disorder is doing part of the frozen mode's job, and does it with the wrong shape.
+- The comparison is not symmetric. modal-OU's bands include parameter uncertainty, while the modal3/4 bands are
+  plug-in, so the counts favour modal-OU somewhat. A fair model comparison needs simulation-based posteriors (or
+  Laplace-approximated likelihood posteriors) for the discrete classes too, plus the classifier over classes.
+
+Conclusions of v1 (these change the plan):
+1. Within the modal3 skeleton, continuous within-mode disorder is required, calibrated and specific:
+   - opening-rate disorder sigma_OC ≈ 0.4, slow (tau_w of minutes);
+   - closing-rate disorder small or absent.
+2. The tau_w prior truncates the posterior: extend it (log-U[1, 3000] s) before interpreting tau_w.
+3. Neither model reproduces both ends. modal4 (discrete) has the frozen-mode tails but not the 30–300 s CK/ACF
+   memory; modal-OU has the latter but not the former. The next class is modal4-OU (the modal4 skeleton with OU
+   disorder within modes). It asks whether the slow disorder survives once the frozen mode is present, or whether
+   both are needed (ladder plus continuum).
+4. A slow 1D OU modulating kOC with tau_w of minutes is close to "more slow modes". The question "continuous or
+   discrete" moves to the top-level structure: discrete frozen mode plus continuous slow modulation, or a longer
+   discrete ladder. modal5 (discrete) should be in the model set.
+
 ## Next steps
 
-- Phase 1 (repository `hsp90-memory/`, to be continued in Claude Code): NPE over the nested model with priors on the
-  mode rates (from modal3/modal4 posteriors), σ_OC, σ_CO, τ_w, ρ; ~1e5 simulations; simulation-based calibration;
-  posterior-predictive checks on the real traces; model comparison modal-K vs modal-OU vs (optionally) GLE-gated.
+- Phase 1, done for modal3-OU (v1, above): 10^5 simulations, NPE, SBC/TARP, posterior-predictive checks.
+- Phase 1, remaining, in order:
+  1. modal3-OU v2: tau_w ~ log-U[1, 3000] s, another 10^5 simulations (~3 h). Mixing tau_w ranges between rounds
+     needs care, so run it as a separate simulation set.
+  2. modal4-OU: the modal4 skeleton with OU disorder, prior around the modal4 ML fit (factor 2), 10^5 simulations.
+  3. Discrete classes modal4 and modal5 with the same rate priors (needs a numba AMM simulator, or modal-OU with
+     sigma = 0).
+  4. Model-posterior classifier over {modal3-OU, modal4, modal4-OU, modal5}, with SBC and symmetric
+     posterior-predictive checks (simulation-based posteriors for every class).
+  5. Optionally the GLE-gated class.
+  The speed-up that matters is `summaries.summary_vector`, at 0.33 of 0.45 s per simulation.
 - Ask Hugel, in one email: the ATP traces (33,000 transitions); the smFRET traces under matching conditions; the 24 h
   traces and parallel-ruler ensemble; acquisition details (exposure time; whether the 10-Hz series is decimated from a
   faster acquisition — the absence of straddle frames suggests so). kHz bursts would make intra-well dynamics and the

@@ -11,3 +11,5 @@ figures/*.png
 results/phase1/*.npz
 results/phase1/*.tmp
 sbi-logs/
+!results/phase1/npe_*.npz
+!results/phase1/ppc_*.npz

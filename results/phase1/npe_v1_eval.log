@@ -1,0 +1,16 @@
+train 99000 sims, test 1000, summary dim 115 (dropped ['ck_open_0', 'ck_open_1', 'ck_open_2', 'ck_open_3', 'ck_open_4', 'ck_open_5', 'ck_closed_0', 'ck_closed_1', 'ck_closed_2', 'ck_closed_3', 'ck_closed_4', 'ck_closed_5', 'sv2d_0'], imputed 2)
+loaded trained posterior from results/phase1/npe_v1.pt
+/home/ubuntu/hsp90-memory/scripts/phase1_npe.py:155: UserWarning: Capping max_sampling_batch_size from 10000 to 2000 to avoid excessive memory usage.
+  S = torch.cat([posterior.sample_batched((a.n_post,), x=xte[i:i + 50], show_progress_bars=False)
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/nflows/transforms/lu.py:80: UserWarning: torch.triangular_solve is deprecated in favor of torch.linalg.solve_triangularand will be removed in a future PyTorch release.
+torch.linalg.solve_triangular has its arguments reversed and does not return a copy of one of the inputs.
+X = torch.triangular_solve(B, A).solution
+should be replaced with
+X = torch.linalg.solve_triangular(A, B). (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/native/BatchLinearAlgebra.cpp:2256.)
+  outputs, _ = torch.triangular_solve(
+{"n_train": 99000, "summary_dim": 115, "train_time_s": NaN, "sbc_time_s": 145.07513999938965, "tarp": {"atc": -0.01144000981003046, "ks_pval": 0.9999989867210388}, "heldout_logprob_mean": 6.023071765899658}
+SBC KS p: {'log_kOC0': 0.221, 'log_kCO0': 0.146, 'log_kOC1': 0.193, 'log_kCO1': 0.221, 'log_kOC2': 0.093, 'log_kCO2': 0.657, 'log_a0': 0.028, 'log_b0': 0.011, 'log_c0': 0.5, 'log_a1': 0.221, 'log_b1': 0.762, 'log_c1': 0.363, 'sigma_OC': 0.762, 'sigma_CO': 0.023, 'log10_tau_w': 0.002, 'rho': 0.193}
+contraction: {'log_kOC0': 0.917, 'log_kCO0': 0.945, 'log_kOC1': 0.902, 'log_kCO1': 0.715, 'log_kOC2': 0.982, 'log_kCO2': 0.976, 'log_a0': 0.363, 'log_b0': 0.354, 'log_c0': 0.408, 'log_a1': 0.487, 'log_b1': 0.604, 'log_c1': 0.3, 'sigma_OC': 0.893, 'sigma_CO': 0.883, 'log10_tau_w': 0.907, 'rho': 0.658}
+posterior (data): {'log_kOC0': [np.float64(-2.721), np.float64(-2.568), np.float64(-2.447)], 'log_kCO0': [np.float64(-1.968), np.float64(-1.812), np.float64(-1.72)], 'log_kOC1': [np.float64(-4.143), np.float64(-3.86), np.float64(-3.459)], 'log_kCO1': [np.float64(-0.63), np.float64(-0.219), np.float64(0.236)], 'log_kOC2': [np.float64(-0.486), np.float64(-0.417), np.float64(-0.353)], 'log_kCO2': [np.float64(0.108), np.float64(0.162), np.float64(0.212)], 'log_a0': [np.float64(-12.742), np.float64(-11.84), np.float64(-11.048)], 'log_b0': [np.float64(-13.162), np.float64(-12.273), np.float64(-11.499)], 'log_c0': [np.float64(-5.148), np.float64(-4.531), np.float64(-3.621)], 'log_a1': [np.float64(-7.272), np.float64(-6.535), np.float64(-5.975)], 'log_b1': [np.float64(-6.628), np.float64(-5.939), np.float64(-5.453)], 'log_c1': [np.float64(-4.586), np.float64(-3.572), np.float64(-2.72)], 'sigma_OC': [np.float64(0.289), np.float64(0.376), np.float64(0.452)], 'sigma_CO': [np.float64(0.026), np.float64(0.137), np.float64(0.257)], 'log10_tau_w': [np.float64(1.565), np.float64(2.256), np.float64(2.464)], 'rho': [np.float64(-0.508), np.float64(0.403), np.float64(0.947)]}
+{'P(sigma_OC<0.1)': 0.00265, 'P(sigma_CO<0.1)': 0.34245, 'P(max sigma<0.1)': 0.0002}
+wall 163.42 s, peak RSS 1293980 KB

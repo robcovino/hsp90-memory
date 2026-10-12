@@ -1,0 +1,19 @@
+modal-OU done 26 s
+modal3 done 142 s
+modal4 done 249 s
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1997: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+modal-OU {'n_stats': 113, 'outside_95': 12, 'n_abs_z_gt_3': 2, 'sum_z2': 159.0244786963173}
+  rms z by group: {'acf': 1.16, 'cc': 1.24, 'ck_closed': 0.97, 'ck_open': 1.18, 'closed_frac': 0.32, 'fano': 1.13, 'logqC': 1.05, 'logqO': 1.86, 'oc': 0.22, 'oo': 0.84, 'rate1min': 1.41, 'rate2min': 1.3, 'sv2d': 0.83}
+modal3 {'n_stats': 113, 'outside_95': 40, 'n_abs_z_gt_3': 29, 'sum_z2': 1099.634675877801}
+  rms z by group: {'acf': 3.72, 'cc': 1.27, 'ck_closed': 4.08, 'ck_open': 4.37, 'closed_frac': 0.08, 'fano': 1.46, 'logqC': 1.62, 'logqO': 5.4, 'oc': 0.42, 'oo': 0.76, 'rate1min': 1.84, 'rate2min': 1.02, 'sv2d': 1.01}
+modal4 {'n_stats': 113, 'outside_95': 18, 'n_abs_z_gt_3': 12, 'sum_z2': 478.6365622559652}
+  rms z by group: {'acf': 2.61, 'cc': 1.12, 'ck_closed': 3.05, 'ck_open': 3.17, 'closed_frac': 0.19, 'fano': 1.3, 'logqC': 0.61, 'logqO': 0.44, 'oc': 0.53, 'oo': 0.86, 'rate1min': 1.58, 'rate2min': 0.94, 'sv2d': 0.89}
+total 249 s
+wall 253.54 s, peak RSS 193172 KB

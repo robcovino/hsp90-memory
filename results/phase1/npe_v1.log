@@ -1,0 +1,34 @@
+train 99000 sims, test 1000, summary dim 115 (dropped ['ck_open_0', 'ck_open_1', 'ck_open_2', 'ck_open_3', 'ck_open_4', 'ck_open_5', 'ck_closed_0', 'ck_closed_1', 'ck_closed_2', 'ck_closed_3', 'ck_closed_4', 'ck_closed_5', 'sv2d_0'], imputed 2)
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/sbi/inference/trainers/npe/npe_base.py:211: UserWarning: Data has extreme outliers in dimension(s) [28, 39, 40, 56, 57, 60, 61, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 102, 111, 112] (beyond 10.0x IQR from quartiles). This may cause precision loss during z-scoring, where distinct values become indistinguishable. Consider removing outliers from your data or setting `z_score_x='none'` (though this may affect training).
+  warn_if_invalid_for_zscoring(x)
+ Neural network successfully converged after 99 epochs.trained in 3021 s, 99 epochs, best val log prob -5.937
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/nflows/transforms/lu.py:80: UserWarning: torch.triangular_solve is deprecated in favor of torch.linalg.solve_triangularand will be removed in a future PyTorch release.
+torch.linalg.solve_triangular has its arguments reversed and does not return a copy of one of the inputs.
+X = torch.triangular_solve(B, A).solution
+should be replaced with
+X = torch.linalg.solve_triangular(A, B). (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/native/BatchLinearAlgebra.cpp:2256.)
+  outputs, _ = torch.triangular_solve(
+Command terminated by signal 9
+	Command being timed: "python scripts/phase1_npe.py --tag v1 --test-batches 0 --n-sbc 1000 --n-post 1000"
+	User time (seconds): 11989.58
+	System time (seconds): 36.72
+	Percent of CPU this job got: 396%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 50:36.74
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 7542916
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 107
+	Minor (reclaiming a frame) page faults: 2298399
+	Voluntary context switches: 12002
+	Involuntary context switches: 280896
+	Swaps: 0
+	File system inputs: 51328
+	File system outputs: 5896
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

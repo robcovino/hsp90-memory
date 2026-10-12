@@ -9,8 +9,13 @@ simulate_modal_ou   : nested model for the identifiability study. Gating modes f
                       sigma = 0 recovers the discrete model; sigma > 0 is 'continuous disorder within modes'.
                       The conformational update uses the exact two-state propagator over one frame given the current
                       rates (so multiple sub-frame transitions are included, as in the AMM likelihood).
+                      sigma may be a scalar or a pair (sigma_OC, sigma_CO) for state-specific coupling.
+simulate_modal_ou_nb: same model, frame loop compiled with numba (per-replicate loop, numba's own RNG stream).
+                      simulate_modal_ou is the reference implementation; the two agree in distribution, not draw by
+                      draw (tests/test_simulators.py checks the summary statistics).
 """
 import numpy as np
+import numba
 from scipy.linalg import expm
 from .io import DT
 
@@ -51,6 +56,7 @@ def simulate_modal_ou(kOC, kCO, SO, SC, sigma, tau_w, rho, n_frames, n_rep=1, se
     """See module docstring. Returns (n_rep, n_frames) int8 observed conformations (0 open, 1 closed)."""
     rng = np.random.default_rng(seed)
     kOC = np.asarray(kOC); kCO = np.asarray(kCO); M = kOC.size
+    sOC, sCO = np.broadcast_to(np.asarray(sigma, float), (2,))
     # per-frame mode-switch probabilities (first order; rates are << 1/DT)
     PO = SO * DT; PC = SC * DT
     CO_ = np.cumsum(PO, 1); CC_ = np.cumsum(PC, 1)      # cumulative rows have a flat step at the diagonal
@@ -66,10 +72,10 @@ def simulate_modal_ou(kOC, kCO, SO, SC, sigma, tau_w, rho, n_frames, n_rep=1, se
     for t in range(n_frames):
         out[:, t] = c
         # OU modulators
-        if sigma > 0:
+        if sOC > 0 or sCO > 0:
             z1 = a * z1 + sq * G[t, 0]; z2p = a * z2p + sq * G[t, 1]
             z2 = rho * z1 + np.sqrt(1 - rho * rho) * z2p
-            k1 = kOC[m] * np.exp(sigma * z1); k2 = kCO[m] * np.exp(sigma * z2)
+            k1 = kOC[m] * np.exp(sOC * z1); k2 = kCO[m] * np.exp(sCO * z2)
         else:
             k1 = kOC[m]; k2 = kCO[m]
         # mode switching, decided on the conformation at the start of the frame
@@ -82,4 +88,63 @@ def simulate_modal_ou(kOC, kCO, SO, SC, sigma, tau_w, rho, n_frames, n_rep=1, se
         kt = k1 + k2; pC = k1 / kt; relax = 1 - np.exp(-kt * DT)
         p_flip = np.where(c == 0, pC * relax, (1 - pC) * relax)
         c = np.where(U[t, 0] < p_flip, 1 - c, c).astype(np.int8)
+    return out
+
+
+def _pi_mode_default(SO, SC):
+    Qm = 0.5 * (SO + SC); np.fill_diagonal(Qm, -Qm.sum(1)); return stationary(Qm)
+
+
+@numba.njit(cache=True)
+def _modal_ou_kernel(kOC, kCO, CO_, CC_, cpi, sOC, sCO, a, rho, n_frames, n_rep, seed, out):
+    np.random.seed(seed)
+    M = kOC.size; sq = np.sqrt(1.0 - a * a); sr = np.sqrt(1.0 - rho * rho)
+    disorder = sOC > 0.0 or sCO > 0.0
+    for r in range(n_rep):
+        u = np.random.random(); m = 0
+        while m < M - 1 and u >= cpi[m]:
+            m += 1
+        c = 1 if np.random.random() < kOC[m] / (kOC[m] + kCO[m]) else 0
+        z1 = np.random.standard_normal(); z2p = np.random.standard_normal()
+        for t in range(n_frames):
+            out[r, t] = c
+            if disorder:
+                z1 = a * z1 + sq * np.random.standard_normal()
+                z2p = a * z2p + sq * np.random.standard_normal()
+                z2 = rho * z1 + sr * z2p
+                k1 = kOC[m] * np.exp(sOC * z1); k2 = kCO[m] * np.exp(sCO * z2)
+            else:
+                k1 = kOC[m]; k2 = kCO[m]
+            # mode switching, decided on the conformation at the start of the frame
+            u = np.random.random()
+            if c == 0:
+                cum = CO_[m]
+            else:
+                cum = CC_[m]
+            if u < cum[M - 1]:
+                tgt = 0
+                for j in range(M):
+                    if u > cum[j]:
+                        tgt += 1
+                m = min(tgt, M - 1)
+            # exact two-state propagator over one frame at the current rates
+            kt = k1 + k2; relax = 1.0 - np.exp(-kt * DT)
+            p_flip = (k1 / kt) * relax if c == 0 else (k2 / kt) * relax
+            if np.random.random() < p_flip:
+                c = 1 - c
+
+
+def simulate_modal_ou_nb(kOC, kCO, SO, SC, sigma, tau_w, rho, n_frames, n_rep=1, seed=0, pi_mode=None):
+    """Numba version of simulate_modal_ou (same arguments and output; different random stream)."""
+    kOC = np.ascontiguousarray(kOC, float); kCO = np.ascontiguousarray(kCO, float)
+    SO = np.asarray(SO, float); SC = np.asarray(SC, float)
+    sOC, sCO = np.broadcast_to(np.asarray(sigma, float), (2,))
+    if pi_mode is None:
+        pi_mode = _pi_mode_default(SO, SC)
+    cpi = np.cumsum(pi_mode); cpi[-1] = 1.0
+    CO_ = np.ascontiguousarray(np.cumsum(SO * DT, 1)); CC_ = np.ascontiguousarray(np.cumsum(SC * DT, 1))
+    a = float(np.exp(-DT / tau_w)) if tau_w > 0 else 0.0
+    out = np.empty((n_rep, n_frames), np.int8)
+    _modal_ou_kernel(kOC, kCO, CO_, CC_, cpi, float(sOC), float(sCO), a, float(rho), int(n_frames), int(n_rep),
+                     int(seed) % (2 ** 32), out)
     return out

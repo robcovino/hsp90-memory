@@ -1,0 +1,62 @@
+2026-10-12 00:31:58,228 MainProcess 0 complete batches found, 10 to run on 4 workers
+2026-10-12 00:33:29,222 ForkPoolWorker-1 batch 0000: 200/1000, 0.454 s/sim
+2026-10-12 00:33:30,275 ForkPoolWorker-3 batch 0002: 200/1000, 0.459 s/sim
+2026-10-12 00:33:30,837 ForkPoolWorker-4 batch 0003: 200/1000, 0.462 s/sim
+2026-10-12 00:33:31,425 ForkPoolWorker-2 batch 0001: 200/1000, 0.465 s/sim
+2026-10-12 00:35:07,291 ForkPoolWorker-4 batch 0003: 400/1000, 0.472 s/sim
+2026-10-12 00:35:07,580 ForkPoolWorker-3 batch 0002: 400/1000, 0.473 s/sim
+2026-10-12 00:35:08,021 ForkPoolWorker-2 batch 0001: 400/1000, 0.474 s/sim
+2026-10-12 00:35:09,337 ForkPoolWorker-1 batch 0000: 400/1000, 0.477 s/sim
+2026-10-12 00:36:39,176 ForkPoolWorker-4 batch 0003: 600/1000, 0.468 s/sim
+2026-10-12 00:36:39,239 ForkPoolWorker-3 batch 0002: 600/1000, 0.468 s/sim
+2026-10-12 00:36:41,129 ForkPoolWorker-1 batch 0000: 600/1000, 0.471 s/sim
+2026-10-12 00:36:42,122 ForkPoolWorker-2 batch 0001: 600/1000, 0.473 s/sim
+2026-10-12 00:38:07,217 ForkPoolWorker-4 batch 0003: 800/1000, 0.461 s/sim
+2026-10-12 00:38:07,936 ForkPoolWorker-3 batch 0002: 800/1000, 0.462 s/sim
+2026-10-12 00:38:08,333 ForkPoolWorker-1 batch 0000: 800/1000, 0.462 s/sim
+2026-10-12 00:38:10,908 ForkPoolWorker-2 batch 0001: 800/1000, 0.466 s/sim
+2026-10-12 00:39:33,493 ForkPoolWorker-4 batch 0003: 1000/1000, 0.455 s/sim
+2026-10-12 00:39:33,502 ForkPoolWorker-4 batch 0003 done: 455 s, 0.455 s/sim, peak RSS 96 MB, non-finite summaries 12020
+2026-10-12 00:39:36,226 ForkPoolWorker-2 batch 0001: 1000/1000, 0.458 s/sim
+2026-10-12 00:39:36,236 ForkPoolWorker-2 batch 0001 done: 458 s, 0.458 s/sim, peak RSS 95 MB, non-finite summaries 12014
+2026-10-12 00:39:37,265 ForkPoolWorker-3 batch 0002: 1000/1000, 0.459 s/sim
+2026-10-12 00:39:37,273 ForkPoolWorker-3 batch 0002 done: 459 s, 0.459 s/sim, peak RSS 95 MB, non-finite summaries 12020
+2026-10-12 00:39:37,733 ForkPoolWorker-1 batch 0000: 1000/1000, 0.459 s/sim
+2026-10-12 00:39:37,744 ForkPoolWorker-1 batch 0000 done: 459 s, 0.459 s/sim, peak RSS 96 MB, non-finite summaries 12024
+2026-10-12 00:41:03,827 ForkPoolWorker-6 batch 0005: 200/1000, 0.438 s/sim
+2026-10-12 00:41:05,211 ForkPoolWorker-5 batch 0004: 200/1000, 0.458 s/sim
+2026-10-12 00:41:06,939 ForkPoolWorker-7 batch 0006: 200/1000, 0.448 s/sim
+2026-10-12 00:41:10,582 ForkPoolWorker-8 batch 0007: 200/1000, 0.464 s/sim
+2026-10-12 00:42:29,454 ForkPoolWorker-5 batch 0004: 400/1000, 0.440 s/sim
+2026-10-12 00:42:31,596 ForkPoolWorker-6 batch 0005: 400/1000, 0.438 s/sim
+2026-10-12 00:42:38,264 ForkPoolWorker-7 batch 0006: 400/1000, 0.452 s/sim
+2026-10-12 00:42:39,426 ForkPoolWorker-8 batch 0007: 400/1000, 0.454 s/sim
+2026-10-12 00:43:58,217 ForkPoolWorker-5 batch 0004: 600/1000, 0.441 s/sim
+2026-10-12 00:43:58,641 ForkPoolWorker-6 batch 0005: 600/1000, 0.437 s/sim
+2026-10-12 00:44:07,925 ForkPoolWorker-7 batch 0006: 600/1000, 0.451 s/sim
+2026-10-12 00:44:09,744 ForkPoolWorker-8 batch 0007: 600/1000, 0.453 s/sim
+2026-10-12 00:45:24,321 ForkPoolWorker-6 batch 0005: 800/1000, 0.435 s/sim
+2026-10-12 00:45:29,858 ForkPoolWorker-5 batch 0004: 800/1000, 0.445 s/sim
+2026-10-12 00:45:34,104 ForkPoolWorker-7 batch 0006: 800/1000, 0.446 s/sim
+2026-10-12 00:45:39,600 ForkPoolWorker-8 batch 0007: 800/1000, 0.452 s/sim
+2026-10-12 00:46:57,573 ForkPoolWorker-6 batch 0005: 1000/1000, 0.441 s/sim
+2026-10-12 00:46:57,582 ForkPoolWorker-6 batch 0005 done: 441 s, 0.441 s/sim, peak RSS 96 MB, non-finite summaries 12015
+2026-10-12 00:47:05,055 ForkPoolWorker-5 batch 0004: 1000/1000, 0.452 s/sim
+2026-10-12 00:47:05,066 ForkPoolWorker-5 batch 0004 done: 452 s, 0.452 s/sim, peak RSS 97 MB, non-finite summaries 12012
+2026-10-12 00:47:06,569 ForkPoolWorker-7 batch 0006: 1000/1000, 0.449 s/sim
+2026-10-12 00:47:06,576 ForkPoolWorker-7 batch 0006 done: 449 s, 0.449 s/sim, peak RSS 96 MB, non-finite summaries 12014
+2026-10-12 00:47:12,273 ForkPoolWorker-8 batch 0007: 1000/1000, 0.455 s/sim
+2026-10-12 00:47:12,282 ForkPoolWorker-8 batch 0007 done: 455 s, 0.455 s/sim, peak RSS 96 MB, non-finite summaries 12015
+2026-10-12 00:48:32,132 ForkPoolWorker-9 batch 0008: 200/1000, 0.473 s/sim
+2026-10-12 00:48:38,885 ForkPoolWorker-10 batch 0009: 200/1000, 0.469 s/sim
+2026-10-12 00:50:04,927 ForkPoolWorker-9 batch 0008: 400/1000, 0.468 s/sim
+2026-10-12 00:50:12,698 ForkPoolWorker-10 batch 0009: 400/1000, 0.469 s/sim
+2026-10-12 00:51:36,774 ForkPoolWorker-9 batch 0008: 600/1000, 0.465 s/sim
+2026-10-12 00:51:42,304 ForkPoolWorker-10 batch 0009: 600/1000, 0.462 s/sim
+2026-10-12 00:53:08,223 ForkPoolWorker-9 batch 0008: 800/1000, 0.463 s/sim
+2026-10-12 00:53:16,971 ForkPoolWorker-10 batch 0009: 800/1000, 0.465 s/sim
+2026-10-12 00:54:35,466 ForkPoolWorker-9 batch 0008: 1000/1000, 0.458 s/sim
+2026-10-12 00:54:35,473 ForkPoolWorker-9 batch 0008 done: 458 s, 0.458 s/sim, peak RSS 96 MB, non-finite summaries 12015
+2026-10-12 00:54:41,884 ForkPoolWorker-10 batch 0009: 1000/1000, 0.457 s/sim
+2026-10-12 00:54:41,891 ForkPoolWorker-10 batch 0009 done: 457 s, 0.457 s/sim, peak RSS 96 MB, non-finite summaries 12026
+2026-10-12 00:54:41,899 MainProcess all 10 batches done in 1363 s wall

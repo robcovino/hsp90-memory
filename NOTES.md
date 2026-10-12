@@ -210,6 +210,39 @@ Caveats: the continuous model inherits the modal3 top-level structure, which the
 50 replicates per setting (AUC ± ~0.05 near 0.85); classifier separability is not posterior precision — Phase 1 gives
 the posterior widths on (σ, τ_w, ρ), and the coupling question (ρ, or separate σ_OC, σ_CO) is where question 2 starts.
 
+## Phase 1 — simulation (2026-10-12)
+
+Simulator speed. `simulators.simulate_modal_ou_nb` runs the frame loop of the nested modal-OU model in numba (loop
+over replicates and frames, numba's own RNG). `simulate_modal_ou` (numpy, vectorised over replicates) is kept as the
+reference. Both now take sigma as a scalar or as a pair (sigma_OC, sigma_CO). One 6-h trace (216,000 frames, modal3
+modes, sigma = (0.5, 0.3), tau_w = 10 s): numpy 12.2 s, numba 0.045 s (~270x); one measurement of 4 x 6 h: 12.0 s vs
+0.22 s. The numpy version costs the same for 1 or 4 replicates because it is bound by per-frame overhead.
+`tests/test_simulators.py` holds the equivalence test: 20 replicate measurements of 4 x 1 h each, sigma =
+(0.6, 0.4), tau_w = 20 s, rho = 0.5. All 113 finite summaries agree (max |z| 3.6, 1.8 % beyond 2 sd). The same test
+rejects the numba simulator with sigma = 0 (max |z| 9.8), and it also separated sigma = (0.3, 0.2) (6.5).
+After the speed-up, `summaries.summary_vector` is the bottleneck: 0.33 s of the 0.45 s per simulated measurement.
+
+Prior (`scripts/phase1_simulate.py`; settings in `results/phase1/settings.json` and in every batch file):
+- all 12 free log-rates of modal3 (within-mode kOC, kCO and the 6 switching rates): N(ML value, sd ln 2), i.e.
+  log-normal with factor 2. Q is rebuilt with `amm.modal(3)`, so detailed balance holds for every draw;
+- sigma_OC, sigma_CO ~ U[0, 1]; tau_w ~ log-U[1, 300] s; rho ~ U[-1, 1].
+One simulation is one measurement of 4 x 6 h at 10 Hz reduced to the 126-entry `summary_vector`. Batches of 1000 go to
+`results/phase1/batch_XXXX.npz`, written atomically. Parameters and seeds of batch b depend only on (seed, b), so a
+rerun skips complete batches and reproduces any missing one bit for bit (checked). A worker uses ~97 MB peak RSS.
+Batch files are not committed (`.gitignore`; ~1.2 MB each).
+
+Smoke test, 10^4 simulations (batches 0–9; they are the first 10 batches of the full run):
+- 1363 s wall on 4 workers (0.454 s per simulation per worker; 5/50/95 %: 0.35/0.44/0.61 s).
+- So 10^5 takes ~2.9 h on this VM.
+- Non-finite entries: 12 structural (CK lags <= tau = 1 s, undefined by construction). fano_1 (fast episodes) is
+  missing in 1.7 % of draws, those with no fast episodes. sv2d_0 = 1 by normalisation and carries no information.
+  The NPE drops the structural and constant entries and imputes fano_1 with an indicator.
+- The data sit inside the prior predictive on every statistic, mostly between the 30th and 75th percentiles
+  (`results/phase1/smoke_report.json`, `figures/phase1_smoke.png`). The tails are the 99.9 % open-dwell quantile
+  (percentile 0.97: the long-open tail that modal3, lacking the frozen mode, under-produces), the high-rate bins of the
+  local-rate histograms (0.88–0.92) and the CK tail from q0 = closed at 50–140 s (0.74–0.79). The prior covers
+  the data. No summary is degenerate apart from sv2d_0.
+
 ## Next steps
 
 - Phase 1 (repository `hsp90-memory/`, to be continued in Claude Code): NPE over the nested model with priors on the
@@ -223,9 +256,12 @@ the posterior widths on (σ, τ_w, ρ), and the coupling question (ρ, or separa
 ## Files (repository `hsp90-memory/`)
 
 - `src/hsp90memory/` — `io.py` (loading, idealisation), `amm.py` (AMM likelihood, fitting), `simulators.py` (AMM and
-  nested modal-OU simulators), `summaries.py` (summary statistics incl. CK divergence). `tests/` — 7 tests, `pytest`.
+  nested modal-OU simulators, numpy reference and numba), `summaries.py` (summary statistics incl. CK divergence).
+  `tests/` — 9 tests, `pytest`.
 - `scripts/` — `run_fits.py`, `run_general_seeded.py`, `predictive_checks.py`, `phase0_simulate.py`, `phase0_refit.py`,
-  `phase0_analyse.py`; `scripts/diagnostics/` — the model-free diagnostics (`plot_trace.py`, `within_state.py`,
+  `phase0_analyse.py`, `phase1_simulate.py` (checkpointed simulation driver), `phase1_smoke_report.py`,
+  `phase1_npe.py` (NPE, SBC, TARP, posterior for the data), `phase1_ppc.py` (posterior-predictive checks vs modal3/4);
+  `scripts/diagnostics/` — the model-free diagnostics (`plot_trace.py`, `within_state.py`,
   `dwell_memory.py`, `sticking_test.py`).
 - `results/*.json` — fitted generators Q, stationary distributions, log L, BIC; `results/phase0/` — summary vectors
   per setting (npz), refit log-likelihoods, `phase0_results.json`.

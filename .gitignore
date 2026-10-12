@@ -7,3 +7,7 @@ build/
 results/*.log
 results/phase0/*.npz
 figures/*.png
+.venv/
+results/phase1/*.npz
+results/phase1/*.tmp
+sbi-logs/

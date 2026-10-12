@@ -79,12 +79,32 @@ def propagator(s, L):
     return G
 
 
+class _Counts:
+    """Two-point counts of a 0/1 series at arbitrary lags from prefix sums and lagged dot products; gives the same
+    propagators as `propagator` (exact integer counts, identical floating-point division)."""
+    def __init__(self, s):
+        self.s = np.ascontiguousarray(s, dtype=np.float64); self.n = self.s.size   # float dot: BLAS, exact < 2^53
+        self.cs = np.r_[0, np.cumsum(np.asarray(s, dtype=np.int64))]
+
+    def G(self, L):
+        n, cs = self.n, self.cs
+        n1 = int(cs[n - L]); n0 = (n - L) - n1                 # a = s[:-L]: frames in class 1 / 0
+        b1 = int(cs[n] - cs[L])                              # b = s[L:]: frames in class 1
+        n11 = int(np.dot(self.s[:-L], self.s[L:])); n01 = b1 - n11
+        G = np.zeros((2, 2))
+        for c0, (nn, k1) in enumerate(((n0, n01), (n1, n11))):
+            if nn == 0: G[c0] = [0.5, 0.5]; continue
+            G[c0, 1] = k1 / nn; G[c0, 0] = 1 - G[c0, 1]
+        return G
+
+
 def ck_divergence(s, tau_frames=10, lags=CK_LAGS):
     """Vollmar et al. (2024) Chapman-Kolmogorov divergence D_{tau,q0}(t), both q0, for one trace."""
-    Gtau = propagator(s, tau_frames); out = np.full((2, len(lags)), np.nan)
+    cnt = _Counts(s)
+    Gtau = cnt.G(tau_frames); out = np.full((2, len(lags)), np.nan)
     for i, L in enumerate(lags):
         if L <= tau_frames: continue
-        G = propagator(s, L); Gck = Gtau @ propagator(s, L - tau_frames)
+        G = cnt.G(L); Gck = Gtau @ cnt.G(L - tau_frames)
         for q0 in (0, 1):
             out[q0, i] = np.sum(G[q0] * np.log(np.clip(G[q0], 1e-12, None) / np.clip(Gck[q0], 1e-12, None)))
     return out

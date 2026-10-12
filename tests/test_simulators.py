@@ -43,3 +43,14 @@ def test_modal_ou_numba_reproducible():
     a = sim.simulate_modal_ou_nb(*p, 0.5, 10.0, 0.0, 5000, n_rep=3, seed=123)
     b = sim.simulate_modal_ou_nb(*p, 0.5, 10.0, 0.0, 5000, n_rep=3, seed=123)
     assert np.array_equal(a, b) and a.dtype == np.int8 and a.shape == (3, 5000)
+
+
+def test_modal_ou_fast_identical_to_reference():
+    """simulate_modal_ou_fast consumes the reference's random draws in the same order: identical trajectories."""
+    for key in ("modal3", "modal4"):
+        Q = np.array(json.load(open(ROOT / f"results/{key}.json"))["Q"])
+        p = sim.modal_params_from_Q(Q)
+        for sigma, tau, rho in [(0.0, 10.0, 0.0), ((0.6, 0.1), 300.0, -0.7), ((0.0, 0.8), 1.0, 1.0)]:
+            a = sim.simulate_modal_ou(*p, sigma, tau, rho, 30000, n_rep=3, seed=5)
+            b = sim.simulate_modal_ou_fast(*p, sigma, tau, rho, 30000, n_rep=3, seed=5)
+            assert np.array_equal(a, b), (key, sigma, tau, rho)

@@ -13,3 +13,5 @@ results/phase1/*.tmp
 sbi-logs/
 !results/phase1/npe_*.npz
 !results/phase1/ppc_*.npz
+results/phase1_*/batch_*.npz
+results/phase1_*/*.tmp

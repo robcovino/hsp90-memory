@@ -1,17 +1,17 @@
-"""Phase 1: neural posterior estimation over the nested modal-OU model, simulation-based calibration, and the
-posterior for the real traces.
+"""Phase 1: neural posterior estimation for one model class (modal-K, discrete or with within-mode OU disorder),
+simulation-based calibration, and the posterior for the real traces.
 
-Inputs: results/phase1/batch_*.npz (scripts/phase1_simulate.py). Parameters as trained (16):
-  log-rates of modal3 (12, prior N(theta_hat, ln 2)), sigma_OC, sigma_CO ~ U[0, 1], log10 tau_w ~ U[0, log10 300],
-  rho ~ U[-1, 1].
+Inputs: <sims>/batch_*.npz (scripts/phase1_simulate.py). Parameters as trained: the log-rates of modalK
+(prior N(theta_hat, ln 2)) and, for OU classes, sigma_OC, sigma_CO ~ U[0, 1], log10 tau_w ~ U[0, log10 tau_max],
+rho ~ U[-1, 1].
 Summaries: summaries.summary_vector without its structurally undefined entries (CK lags <= tau); entries that are
 non-finite in some simulations (Fano factors when an episode type is absent) are imputed with the training median and
 flagged by an indicator column.
 Held-out batches (--test-batches) are never used for training; SBC (rank statistics, 1000 posterior samples per
 held-out simulation) and TARP expected coverage are computed on them.
 
-Usage: python scripts/phase1_npe.py --tag v1 [--test-batches 0 1] [--n-sbc 1000] [--max-epochs 500]
-Outputs (results/phase1/): npe_<tag>.pt (posterior + preprocessing), npe_<tag>.json (settings, training curve, SBC,
+Usage: python scripts/phase1_npe.py --tag v1 [--sims results/phase1 --outdir results/phase1] [--test-batches 0]
+Outputs (<outdir>): npe_<tag>.pt (posterior + preprocessing), npe_<tag>.json (settings, training curve, SBC,
 coverage, posterior summary for the data), npe_<tag>_posterior_data.npz; figures/phase1_npe_<tag>_*.png.
 """
 import argparse, json, os, pickle, sys, time, warnings
@@ -30,9 +30,11 @@ from sbi.diagnostics.tarp import _run_tarp, get_tarp_references
 from hsp90memory import io, summaries as sm
 
 D = Path("results/phase1")
-TRAIN_NAMES = [f"log_{n}" for n in ("kOC0", "kCO0", "kOC1", "kCO1", "kOC2", "kCO2",
-                                    "a0", "b0", "c0", "a1", "b1", "c1")] + ["sigma_OC", "sigma_CO", "log10_tau_w", "rho"]
-DISORDER = [12, 13, 14, 15]
+OU = ("sigma_OC", "sigma_CO", "log10_tau_w", "rho")
+
+
+def train_names(settings):
+    return [("log10_tau_w" if n == "tau_w" else n) for n in settings["param_names"]]
 
 
 def load_batches(d=D):
@@ -44,13 +46,18 @@ def load_batches(d=D):
     return np.concatenate(B), np.concatenate(X), np.concatenate(P), names, settings
 
 
-def to_train_params(P):
-    T = P.copy(); T[:, 14] = np.log10(P[:, 14]); return T
+def to_train_params(P, settings):
+    T = P.copy()
+    if "tau_w" in settings["param_names"]:
+        i = settings["param_names"].index("tau_w"); T[:, i] = np.log10(P[:, i])
+    return T
 
 
 def make_prior(settings):
     th = torch.tensor(settings["theta_hat"], dtype=torch.float32)
     sd = torch.full_like(th, settings["theta_sd"])
+    if settings.get("discrete"):
+        return Independent(Normal(th, sd), 1)
     return MultipleIndependent([
         Independent(Normal(th, sd), 1),
         Independent(Uniform(torch.zeros(1), torch.ones(1)), 1),
@@ -114,7 +121,8 @@ def main():
 
     B, X, P, names, settings = load_batches(Path(a.sims))
     test = np.isin(B, a.test_batches); train = ~test
-    T = to_train_params(P)
+    T = to_train_params(P, settings)
+    TN = train_names(settings); NP = len(TN); DIS = [i for i, n in enumerate(TN) if n in OU]
     pp = Preproc().fit(X[train], names)
     xtr = torch.tensor(pp(X[train]), dtype=torch.float32); ttr = torch.tensor(T[train], dtype=torch.float32)
     xte = torch.tensor(pp(X[test]), dtype=torch.float32)[: a.n_sbc]; tte = torch.tensor(T[test], dtype=torch.float32)[: a.n_sbc]
@@ -141,7 +149,7 @@ def main():
         print(f"trained in {t_train:.0f} s, {s['epochs_trained'][-1]:.0f} epochs, best validation loss (-log q) "
               f"{s['best_validation_loss'][-1]:.3f}", flush=True)
         posterior = inf.build_posterior(est)
-        torch.save({"posterior": posterior, "preproc": pickle.dumps(pp), "train_names": TRAIN_NAMES,
+        torch.save({"posterior": posterior, "preproc": pickle.dumps(pp), "train_names": TN,
                     "summary": s, "train_time_s": t_train}, out_pt)
 
     # held-out log probability of the true parameters (flow density, without the leakage normalisation)
@@ -153,7 +161,7 @@ def main():
     # SBC and TARP on held-out simulations; posterior samples drawn in chunks to bound memory
     t0 = time.time()
     S = torch.cat([posterior.sample_batched((a.n_post,), x=xte[i:i + 50], show_progress_bars=False)
-                   for i in range(0, len(xte), 50)], 1)                        # (n_post, n_sbc, 16)
+                   for i in range(0, len(xte), 50)], 1)                        # (n_post, n_sbc, n_par)
     ranks = (S < tte.unsqueeze(0)).sum(0).float()                               # marginal ranks
     stats = check_sbc(ranks, tte, S[0], num_posterior_samples=a.n_post)
     ecp, alpha = _run_tarp(S, tte, get_tarp_references(tte), z_score_theta=True)
@@ -162,29 +170,32 @@ def main():
     # per-parameter marginal coverage of central credible intervals, and posterior contraction
     levels = np.array([0.5, 0.8, 0.9, 0.95])
     r = ranks.numpy() / a.n_post
-    cov = {TRAIN_NAMES[i]: [float(np.mean(np.abs(r[:, i] - 0.5) <= l / 2)) for l in levels] for i in range(16)}
+    cov = {TN[i]: [float(np.mean(np.abs(r[:, i] - 0.5) <= l / 2)) for l in levels] for i in range(NP)}
     Sn = S.numpy()
     post_sd = Sn.std(0); post_err = np.abs(np.median(Sn, 0) - tte.numpy())
     prior_sd = T[train].std(0)
     contraction = 1 - (np.mean(post_sd, 0) / prior_sd) ** 2
     np.savez(od / f"npe_{a.tag}_sbc.npz", ranks=ranks.numpy(), theta=tte.numpy(), post_median=np.median(Sn, 0),
-             post_sd=post_sd, names=np.array(TRAIN_NAMES))
+             post_sd=post_sd, names=np.array(TN))
     del S, Sn
 
     # posterior for the data
     xo = torch.tensor(pp(observed_summary()), dtype=torch.float32)
     so = posterior.sample((20000,), x=xo, show_progress_bars=False).numpy()
     with torch.no_grad():
-        raw = posterior.posterior_estimator.sample((20000,), condition=xo.reshape(1, -1)).reshape(-1, 16)
+        raw = posterior.posterior_estimator.sample((20000,), condition=xo.reshape(1, -1)).reshape(-1, NP)
     leak = float(1 - within_support(prior, raw).float().mean())
     q = np.quantile(so, [0.05, 0.25, 0.5, 0.75, 0.95], 0)
     post_data = {n: {"q05": q[0, i], "q25": q[1, i], "median": q[2, i], "q75": q[3, i], "q95": q[4, i],
-                     "mean": float(so[:, i].mean()), "sd": float(so[:, i].std())} for i, n in enumerate(TRAIN_NAMES)}
-    post_data["P(sigma_OC<0.1)"] = float(np.mean(so[:, 12] < 0.1)); post_data["P(sigma_CO<0.1)"] = float(np.mean(so[:, 13] < 0.1))
-    post_data["P(max sigma<0.1)"] = float(np.mean(np.maximum(so[:, 12], so[:, 13]) < 0.1))
+                     "mean": float(so[:, i].mean()), "sd": float(so[:, i].std())} for i, n in enumerate(TN)}
     post_data["leakage_outside_prior"] = leak
-    post_data["corr_disorder"] = np.corrcoef(so[:, DISORDER].T).tolist()
-    np.savez(od / f"npe_{a.tag}_posterior_data.npz", samples=so, names=np.array(TRAIN_NAMES), x_obs=xo.numpy())
+    if DIS:
+        i1, i2 = TN.index("sigma_OC"), TN.index("sigma_CO")
+        post_data["P(sigma_OC<0.1)"] = float(np.mean(so[:, i1] < 0.1))
+        post_data["P(sigma_CO<0.1)"] = float(np.mean(so[:, i2] < 0.1))
+        post_data["P(max sigma<0.1)"] = float(np.mean(np.maximum(so[:, i1], so[:, i2]) < 0.1))
+        post_data["corr_disorder"] = np.corrcoef(so[:, DIS].T).tolist()
+    np.savez(od / f"npe_{a.tag}_posterior_data.npz", samples=so, names=np.array(TN), x_obs=xo.numpy())
 
     rep = {"tag": a.tag, "args": vars(a), "simulation_settings": settings, "n_train": int(train.sum()),
            "n_test": int(len(xte)), "test_batches": a.test_batches, "summary_dim": int(xtr.shape[1]),
@@ -192,25 +203,27 @@ def main():
            "total_time_s": time.time() - t_start,
            "training": s,
            "heldout_logprob_mean": float(np.mean(lp_test)),
-           "sbc": {"ks_pvals": dict(zip(TRAIN_NAMES, stats["ks_pvals"].numpy().tolist())),
-                   "c2st_ranks": dict(zip(TRAIN_NAMES, stats["c2st_ranks"].numpy().ravel().tolist())),
-                   "c2st_dap": dict(zip(TRAIN_NAMES, stats["c2st_dap"].numpy().ravel().tolist()))},
+           "sbc": {"ks_pvals": dict(zip(TN, stats["ks_pvals"].numpy().tolist())),
+                   "c2st_ranks": dict(zip(TN, stats["c2st_ranks"].numpy().ravel().tolist())),
+                   "c2st_dap": dict(zip(TN, stats["c2st_dap"].numpy().ravel().tolist()))},
            "tarp": {"atc": float(atc), "ks_pval": float(ks_p)},
            "coverage_levels": levels.tolist(), "marginal_coverage": cov,
-           "contraction": dict(zip(TRAIN_NAMES, contraction.tolist())),
-           "mean_abs_error_heldout": dict(zip(TRAIN_NAMES, np.mean(post_err, 0).tolist())),
-           "heldout_post_sd_mean": dict(zip(TRAIN_NAMES, np.mean(post_sd, 0).tolist())),
-           "prior_sd": dict(zip(TRAIN_NAMES, prior_sd.tolist())),
+           "contraction": dict(zip(TN, contraction.tolist())),
+           "mean_abs_error_heldout": dict(zip(TN, np.mean(post_err, 0).tolist())),
+           "heldout_post_sd_mean": dict(zip(TN, np.mean(post_sd, 0).tolist())),
+           "prior_sd": dict(zip(TN, prior_sd.tolist())),
            "posterior_data": post_data}
     json.dump(rep, open(out_js, "w"), indent=1, default=float)
 
     # figures: SBC rank histograms, coverage, posterior for the data
-    fig, axs = plt.subplots(4, 4, figsize=(13, 10)); nb = 20
+    nc = 5; nr = int(np.ceil(NP / nc))
+    fig, axs = plt.subplots(nr, nc, figsize=(16, 2.5 * nr)); nb = 20
+    for ax in axs.ravel()[NP:]: ax.axis("off")
     lo, hi = np.percentile(np.random.binomial(len(r), 1 / nb, (5000, nb)), [0.5, 99.5])
-    for i, ax in enumerate(axs.ravel()):
+    for i, ax in enumerate(axs.ravel()[:NP]):
         ax.hist(ranks[:, i].numpy(), bins=nb, range=(0, a.n_post), color="C0")
         ax.axhspan(lo, hi, color="0.85", zorder=0)
-        ax.set_title(f"{TRAIN_NAMES[i]}  KS p={stats['ks_pvals'][i]:.2f}", fontsize=8); ax.set_yticks([])
+        ax.set_title(f"{TN[i]}  KS p={stats['ks_pvals'][i]:.2f}", fontsize=8); ax.set_yticks([])
     fig.suptitle(f"SBC ranks, {len(r)} held-out simulations (grey: 99 % band for uniform)"); fig.tight_layout()
     fig.savefig(fd / f"phase1_npe_{a.tag}_sbc.png", dpi=110)
 
@@ -218,24 +231,25 @@ def main():
     axs[0].plot(alpha.numpy(), ecp.numpy(), "C0"); axs[0].plot([0, 1], [0, 1], "k:")
     axs[0].set_xlabel("credibility level"); axs[0].set_ylabel("expected coverage")
     axs[0].set_title(f"TARP (joint): ATC={float(atc):.3f}, KS p={float(ks_p):.2f}")
-    for i in DISORDER:
-        axs[1].plot(levels, cov[TRAIN_NAMES[i]], "o-", label=TRAIN_NAMES[i])
+    for i in (DIS or range(NP)):
+        axs[1].plot(levels, cov[TN[i]], "o-", label=TN[i])
     axs[1].plot([0.4, 1], [0.4, 1], "k:"); axs[1].legend(fontsize=8); axs[1].set_xlabel("central interval level")
-    axs[1].set_ylabel("empirical coverage"); axs[1].set_title("marginal coverage, disorder parameters")
+    axs[1].set_ylabel("empirical coverage"); axs[1].set_title("marginal coverage" + (", disorder parameters" if DIS else ""))
     fig.tight_layout(); fig.savefig(fd / f"phase1_npe_{a.tag}_coverage.png", dpi=110)
 
-    fig, axs = plt.subplots(4, 4, figsize=(13, 10)); pr = prior.sample((20000,)).numpy()
-    for i, ax in enumerate(axs.ravel()):
+    fig, axs = plt.subplots(nr, nc, figsize=(16, 2.5 * nr)); pr = prior.sample((20000,)).numpy()
+    for ax in axs.ravel()[NP:]: ax.axis("off")
+    for i, ax in enumerate(axs.ravel()[:NP]):
         ax.hist(pr[:, i], 60, density=True, color="0.8", label="prior")
         ax.hist(so[:, i], 60, density=True, color="C3", alpha=0.7, label="posterior (data)")
-        ax.set_title(TRAIN_NAMES[i], fontsize=8); ax.set_yticks([])
-    axs[0, 0].legend(fontsize=7); fig.tight_layout(); fig.savefig(fd / f"phase1_npe_{a.tag}_posterior.png", dpi=110)
+        ax.set_title(TN[i], fontsize=8); ax.set_yticks([])
+    axs.ravel()[0].legend(fontsize=7); fig.tight_layout(); fig.savefig(fd / f"phase1_npe_{a.tag}_posterior.png", dpi=110)
 
     print(json.dumps({k: rep[k] for k in ("n_train", "summary_dim", "train_time_s", "sbc_time_s", "tarp",
                                           "heldout_logprob_mean")}, default=float))
     print("SBC KS p:", {k: round(v, 3) for k, v in rep["sbc"]["ks_pvals"].items()})
     print("contraction:", {k: round(v, 3) for k, v in rep["contraction"].items()})
-    print("posterior (data):", {n: [round(post_data[n][k], 3) for k in ("q05", "median", "q95")] for n in TRAIN_NAMES})
+    print("posterior (data):", {n: [round(post_data[n][k], 3) for k in ("q05", "median", "q95")] for n in TN})
     print({k: v for k, v in post_data.items() if k.startswith("P(")})
 
 

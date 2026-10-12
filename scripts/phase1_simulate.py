@@ -1,15 +1,17 @@
-"""Phase 1: checkpointed simulation driver for NPE over the nested modal-OU model.
+"""Phase 1: checkpointed simulation driver for NPE over modal-K models, discrete or with within-mode OU disorder.
 
 Prior (settings embedded in every batch file and in <out>/settings.json):
-  - the 12 free log-rates of modal3 (results/modal3.json, theta): independent normal around the ML values with sd ln 2
-    (log-normal, factor 2); Q rebuilt with amm.modal(3), so detailed balance holds for every draw;
-  - sigma_OC, sigma_CO ~ U[0, 1]; tau_w ~ log-U[1, 300] s; rho ~ U[-1, 1].
-Each simulation is one measurement of 4 x 6 h at 10 Hz (simulators.simulate_modal_ou_nb), reduced to
-summaries.summary_vector. Batches of --batch-size simulations go to <out>/batch_XXXX.npz (written atomically).
-Parameters and simulator seeds of batch b depend only on (--seed, b), so a rerun skips every complete batch file and
-produces exactly the missing ones: kill and restart at any time.
+  - the free log-rates of modalK (--amm results/modalK.json, theta): independent normal around the ML values with
+    sd ln 2 (log-normal, factor 2); Q rebuilt with amm.modal(K), so detailed balance holds for every draw;
+  - unless --discrete: sigma_OC, sigma_CO ~ U[0, 1]; tau_w ~ log-U[1, --tau-max] s; rho ~ U[-1, 1].
+Each simulation is one measurement of 4 x 6 h at 10 Hz (the nested modal-OU simulator, sigma = 0 for --discrete),
+reduced to summaries.summary_vector. Batches of --batch-size simulations go to <out>/batch_XXXX.npz (written
+atomically). Parameters and simulator seeds of batch b depend only on (--seed, b), so a rerun skips every complete
+batch file and produces exactly the missing ones: kill and restart at any time.
 
-Usage: python scripts/phase1_simulate.py --n-batches 10 [--workers 4] [--out results/phase1]
+v1 (results/phase1): --amm results/modal3.json --tau-max 300 --simulator simulate_modal_ou_nb (the defaults then).
+Usage: python scripts/phase1_simulate.py --n-batches 100 --out results/phase1_m4ou --amm results/modal4.json
+       [--discrete] [--tau-max 3000] [--workers 4]
 """
 import os
 for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMBA_NUM_THREADS"):
@@ -21,26 +23,59 @@ import numpy as np
 from hsp90memory import amm, simulators as sim, summaries as sm
 
 NF, NT = 216000, 4
-PARAM_NAMES = [f"log_{n}" for n in ("kOC0", "kCO0", "kOC1", "kCO1", "kOC2", "kCO2",
-                                    "a0", "b0", "c0", "a1", "b1", "c1")] + ["sigma_OC", "sigma_CO", "tau_w", "rho"]
+OU_NAMES = ["sigma_OC", "sigma_CO", "tau_w", "rho"]
+
+
+def theta_names(K):
+    return ([f"log_k{d}{m}" for m in range(K) for d in ("OC", "CO")]
+            + [f"log_{x}{m}" for m in range(K - 1) for x in ("a", "b", "c")])
+
+
+def n_modes(S):
+    return len(amm_classes(S)) // 2
+
+
+def amm_classes(S):
+    return json.load(open(S["amm"]))["classes"]
 
 
 def settings_from_args(a):
-    r = json.load(open(a.amm))
-    return {"amm": a.amm, "theta_hat": r["theta"], "theta_sd": float(np.log(2.0)), "model": r["model"],
-            "sigma_OC": [0.0, 1.0], "sigma_CO": [0.0, 1.0], "tau_w_loguniform": [1.0, 300.0], "rho": [-1.0, 1.0],
-            "batch_size": a.batch_size, "seed": a.seed, "n_frames": NF, "n_traces": NT, "dt": 0.1,
-            "simulator": "simulate_modal_ou_nb", "summaries": "summary_vector", "param_names": PARAM_NAMES}
+    r = json.load(open(a.amm)); K = len(r["classes"]) // 2
+    S = {"amm": a.amm, "theta_hat": r["theta"], "theta_sd": float(np.log(2.0)), "model": r["model"]}
+    if not a.discrete:
+        S.update({"sigma_OC": [0.0, 1.0], "sigma_CO": [0.0, 1.0], "tau_w_loguniform": [1.0, a.tau_max],
+                  "rho": [-1.0, 1.0]})
+    S.update({"batch_size": a.batch_size, "seed": a.seed, "n_frames": NF, "n_traces": NT, "dt": 0.1,
+              "simulator": a.simulator, "summaries": "summary_vector",
+              "param_names": theta_names(K) + ([] if a.discrete else OU_NAMES)})
+    if a.discrete:
+        S["discrete"] = True
+    return S
 
 
 def sample_prior(S, b):
     rng = np.random.default_rng([S["seed"], b])
     n = S["batch_size"]; th = np.asarray(S["theta_hat"])
     theta = th + S["theta_sd"] * rng.standard_normal((n, th.size))
+    if S.get("discrete"):
+        seeds = rng.integers(0, 2 ** 32, n, dtype=np.uint64)
+        return theta, seeds
     sOC = rng.uniform(*S["sigma_OC"], n); sCO = rng.uniform(*S["sigma_CO"], n)
     tau = np.exp(rng.uniform(*np.log(S["tau_w_loguniform"]), n)); rho = rng.uniform(*S["rho"], n)
     seeds = rng.integers(0, 2 ** 32, n, dtype=np.uint64)
     return np.column_stack([theta, sOC, sCO, tau, rho]), seeds
+
+
+def simulate_one(S, p, seed, model=None):
+    """One measurement (n_traces x n_frames) for parameter vector p (log-rates [+ sigma_OC, sigma_CO, tau_w, rho])."""
+    model = model or amm.modal(n_modes(S)); nth = model.n_par
+    kOC, kCO, SO, SC = sim.modal_params_from_Q(model.Q(p[:nth]))
+    if S.get("discrete"):
+        sig, tau, rho = 0.0, 10.0, 0.0
+    else:
+        sig, tau, rho = (p[nth], p[nth + 1]), p[nth + 2], p[nth + 3]
+    return getattr(sim, S["simulator"])(kOC, kCO, SO, SC, sig, tau, rho, S["n_frames"], n_rep=S["n_traces"],
+                                        seed=int(seed))
 
 
 def batch_path(out, b):
@@ -58,15 +93,13 @@ def is_complete(path, n):
 def run_batch(job):
     b, S, out = job
     log = logging.getLogger("phase1")
-    model = amm.modal(3)
+    model = amm.modal(n_modes(S))
     P, seeds = sample_prior(S, b); n = len(P)
     X, T = [], np.empty(n)
     t_batch = time.time()
     for i in range(n):
         t0 = time.perf_counter()
-        theta, (sOC, sCO, tau, rho) = P[i, :12], P[i, 12:]
-        kOC, kCO, SO, SC = sim.modal_params_from_Q(model.Q(theta))
-        Y = sim.simulate_modal_ou_nb(kOC, kCO, SO, SC, (sOC, sCO), tau, rho, NF, n_rep=NT, seed=int(seeds[i]))
+        Y = simulate_one(S, P[i], seeds[i], model)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
             v, names = sm.summary_vector(list(Y))
@@ -76,7 +109,7 @@ def run_batch(job):
     rss_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
     path = batch_path(out, b); tmp = path.with_suffix(".tmp")
     with open(tmp, "wb") as f:
-        np.savez(f, params=P, param_names=np.array(PARAM_NAMES), x=np.array(X), names=np.array(names),
+        np.savez(f, params=P, param_names=np.array(S["param_names"]), x=np.array(X), names=np.array(names),
                  seeds=seeds, sim_time=T, batch=b, peak_rss_mb=rss_mb, settings=json.dumps(S))
     os.replace(tmp, path)
     dt = time.time() - t_batch
@@ -93,6 +126,10 @@ def main():
     ap.add_argument("--seed", type=int, default=20261012)
     ap.add_argument("--out", default="results/phase1")
     ap.add_argument("--amm", default="results/modal3.json")
+    ap.add_argument("--discrete", action="store_true", help="no within-mode disorder (sigma = 0)")
+    ap.add_argument("--tau-max", type=float, default=300.0)
+    ap.add_argument("--simulator", default="simulate_modal_ou_nb",
+                    choices=["simulate_modal_ou_nb", "simulate_modal_ou_fast"])
     a = ap.parse_args()
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(processName)s %(message)s",
@@ -111,7 +148,7 @@ def main():
     log.info(f"{a.n_batches - len(todo)} complete batches found, {len(todo)} to run on {a.workers} workers")
     if not todo:
         return
-    sim.simulate_modal_ou_nb(np.ones(2), np.ones(2), np.zeros((2, 2)), np.zeros((2, 2)), 0.5, 10.0, 0.0, 10)  # compile
+    getattr(sim, S["simulator"])(np.ones(2), np.ones(2), np.zeros((2, 2)), np.zeros((2, 2)), 0.5, 10.0, 0.0, 10)  # compile
     t0 = time.time()
     with get_context("fork").Pool(a.workers, maxtasksperchild=1) as pool:
         for b, dt, rss in pool.imap_unordered(run_batch, [(b, S, str(out)) for b in todo]):

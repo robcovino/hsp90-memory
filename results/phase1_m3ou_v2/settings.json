@@ -1,0 +1,60 @@
+{
+ "amm": "results/modal3.json",
+ "theta_hat": [
+  -2.574678506539381,
+  -1.829395170791685,
+  -3.3853896946591653,
+  -0.12988043269036664,
+  -0.3332635190622013,
+  0.1885182963500265,
+  -12.13490241422091,
+  -12.46273226138249,
+  -4.24141997697577,
+  -6.696645617333226,
+  -6.072718162005336,
+  -3.5680276245085403
+ ],
+ "theta_sd": 0.6931471805599453,
+ "model": "modal3",
+ "sigma_OC": [
+  0.0,
+  1.0
+ ],
+ "sigma_CO": [
+  0.0,
+  1.0
+ ],
+ "tau_w_loguniform": [
+  1.0,
+  3000.0
+ ],
+ "rho": [
+  -1.0,
+  1.0
+ ],
+ "batch_size": 1000,
+ "seed": 20261013,
+ "n_frames": 216000,
+ "n_traces": 4,
+ "dt": 0.1,
+ "simulator": "simulate_modal_ou_fast",
+ "summaries": "summary_vector",
+ "param_names": [
+  "log_kOC0",
+  "log_kCO0",
+  "log_kOC1",
+  "log_kCO1",
+  "log_kOC2",
+  "log_kCO2",
+  "log_a0",
+  "log_b0",
+  "log_c0",
+  "log_a1",
+  "log_b1",
+  "log_c1",
+  "sigma_OC",
+  "sigma_CO",
+  "tau_w",
+  "rho"
+ ]
+}

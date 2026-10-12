@@ -329,19 +329,158 @@ Conclusions of v1 (these change the plan):
    discrete" moves to the top-level structure: discrete frozen mode plus continuous slow modulation, or a longer
    discrete ladder. modal5 (discrete) should be in the model set.
 
+## Phase 1 v2 — four model classes (2026-10-12)
+
+Speed (before the runs):
+- `simulators.simulate_modal_ou_fast` draws its random numbers with numpy's Generator in the reference's order and
+  layout and runs the frame loop in numba. It reproduces `simulate_modal_ou` trajectories exactly (test, 6 settings,
+  modal3 and modal4); 0.096 s per 4 x 6 h measurement with disorder (v1 numba 0.19 s, numpy 12 s).
+- `summaries.ck_divergence` now builds its propagators from prefix sums and lagged dot products. The output is
+  bit-identical to the masked-mean version (test; the stored v1 summary vectors are reproduced exactly), and
+  `summary_vector` drops from 0.31 to 0.14 s.
+- On 4 shared vCPUs with 4 workers: 0.29 s per simulation per worker; 1.5–2.1 h per set of 10^5.
+
+modal5 ML fit (`scripts/fit_modal5.py`; `results/modal5.json`, `modal5_seeds.json`):
+- Five L-BFGS runs, 1151 s: the default initialisation and modal4 with each mode split in two.
+- Best log L = −98,104.1 (default and split-3 seeds agree to 0.06), vs modal4 −98,133.7: +29.6 for 5 parameters.
+  BIC 196,431.5 vs 196,439.9, so BIC prefers modal5 by 8.4.
+- modal5 keeps the frozen, slow-symmetric and open-biased modes of modal4 and splits the fast mode into two nearly
+  identical modes:
+  - <open> 1.5 s, <closed> 0.8 s, occupancy 0.20;
+  - <open> 1.1 s, <closed> 0.8 s, occupancy 0.08.
+  The two exchange through the closed state on 27–50 s, and through the open state only on hours.
+  This is heterogeneity of kOC within the fast mode: the discrete counterpart of the kOC disorder.
+
+Simulation sets (`scripts/run_phase1_v2.sh`; 10^5 each; batch 0 held out; own prior seed per set; fast simulator):
+
+| set | class | parameters | prior |
+|---|---|---|---|
+| `results/phase1_m3ou_v2` | modal3-OU | 16 | modal3 rates x/÷2; sigma_OC, sigma_CO U[0,1]; tau_w log-U[1, 3000] s; rho U[-1,1] |
+| `results/phase1_m4ou` | modal4-OU | 21 | modal4 rates x/÷2; OU priors as above |
+| `results/phase1_m4` | modal4 (discrete) | 17 | modal4 rates x/÷2 |
+| `results/phase1_m5` | modal5 (discrete) | 22 | modal5 rates x/÷2 |
+
+NPE per class: same architecture and training as v1 (NSF, 5 transforms, 128 hidden; MLP embedding; 99,000 training
+simulations; 50–68 min each). Calibration on the 1000 held-out simulations, 1000 posterior samples each:
+
+| class | TARP ATC | coverage at 80 % / 95 % (range over parameters) | rank KS p < 0.01 | largest median offset / sd of standardised error |
+|---|---|---|---|---|
+| modal3-OU | +0.001 | 0.75–0.82 / 0.92–0.96 | 8 of 16 | 0.18 sd (kOC0) / 0.96–1.22 (tau_w widest) |
+| modal4-OU | +0.007 | 0.76–0.82 / 0.92–0.96 | 5 of 21 | 0.15 sd / 0.97–1.12 |
+| modal4 | +0.004 | 0.75–0.81 / 0.93–0.96 | 6 of 17 | 0.50 sd (kCO of the fast mode) / 0.98–1.40 |
+| modal5 | −0.002 | 0.76–0.82 / 0.92–0.96 | 2 of 22 | 0.13 sd / 0.97–1.88 (kOC of fast mode A) |
+
+- Joint calibration is good in every class and the coverage of central intervals is close to nominal.
+- The rank tests detect small systematic offsets, largest for the sharpest posteriors (fast-mode rates, contraction
+  0.99), where the flow over-concentrates by up to a factor 1.4–1.9 in sd.
+- None of this affects the disorder parameters at the level reported below: their offsets are <= 0.09 sd, except
+  log10 tau_w in modal3-OU (0.17 sd, sd of the standardised error 1.22).
+- An NPE ensemble is not warranted for the conclusions here. It is for a final, paper-grade posterior (or sequential
+  NPE around the data).
+
+Posteriors for the data (median [90 %]):
+- modal3-OU, tau_w prior extended to 3000 s:
+  - sigma_OC = 0.38 [0.31, 0.47]; sigma_CO = 0.07 [0.01, 0.18] (P(sigma_CO < 0.1) = 0.69);
+  - tau_w = 255 s [42, 1900 s]: no longer at the bound, but only bounded below;
+  - rho = 0.83 [−0.24, 0.99].
+  The v1 conclusions hold. Leakage outside the prior for the data rose to 19 % (rejected), as the posterior
+  approaches sigma_CO = 0.
+- modal4-OU:
+  - sigma_OC = 0.23 [0.08, 0.32]; sigma_CO = 0.10 [0.01, 0.21]; P(sigma_OC < 0.1) = 0.07; P(both < 0.1) = 0.02;
+  - tau_w = 171 s [15, 2160 s]; rho = −0.23 [−0.92, 0.73].
+  With the frozen mode present, the kOC disorder shrinks from 0.38 to 0.23 but does not vanish.
+- Discrete modal4 and modal5: rates close to the ML fits, with the tension below.
+
+Summary-based posterior vs ML fit: the position of the full-likelihood ML parameters within the summary-based NPE
+posterior of the same class (Mahalanobis^2 in the log-rates):
+- modal4-OU: 7 over 17 dimensions (sigma = 0 margin);
+- modal5: 13 over 22;
+- modal3-OU: 16 over 12 (kOC of the open-biased mode at +2.9 sd);
+- modal4: 36 over 17 (p ≈ 0.005 if the NPE were exact). kOC of three modes and kCO of the fast mode sit 2.1–3.6 sd
+  from the posterior means. To match the summaries (the CK/ACF tail above all), modal4 needs closing rates that the
+  dwell-sequence likelihood does not prefer. Read as a moderate tension: the NPE over-concentrates by up to 1.4x in
+  sd for some of these rates, which inflates the number.
+
+Symmetric posterior-predictive checks (`scripts/phase1_ppc_classes.py --name v2`;
+`results/phase1_classes/ppc_v2.{json,npz}`, `figures/phase1_ppc_v2.png`). 200 measurements per class from its own
+posterior; plug-in ML references for modal3 and modal4. Expectation for a correct model: ~6 of 113 statistics
+outside the 95 % band.
+
+| model | outside 95 % | \|z\| > 3 | sum z^2 | worst |
+|---|---|---|---|---|
+| modal3-OU (posterior) | 17 | 8 | 206 | 99.9 % open/closed quantiles (z 3.9, 3.3), CK at 70–140 s (3.0–3.4) |
+| modal4-OU (posterior) | 5 | 0 | 96 | CK at 70 s (2.6) |
+| modal4 (posterior) | 4 | 0 | 77 | — (all \|z\| < 2.5) |
+| modal5 (posterior) | 3 | 0 | 81 | CK at 100 s (2.5) |
+| modal3 (ML plug-in) | 40 | 31 | 1023 | open tail, CK, ACF |
+| modal4 (ML plug-in) | 18 | 14 | 494 | CK 50–200 s (z up to 8), ACF 60–200 s |
+
+- The large v1 gap between modal4 and modal-OU was mostly the plug-in: with parameter uncertainty and rates fitted to
+  the summaries, discrete modal4 and modal5 pass the checks as well as modal4-OU.
+- modal3-OU fails both tails: it lacks the frozen mode. Its posterior predictive also overshoots the fast-episode Fano
+  factor (6.1 vs 5.1 in the data).
+- Common residual: no class reproduces the shape of the CK divergence from q0 = open at 30–300 s. The data have a
+  plateau (4.5e-4 nats from 33 to 68 s), then a drop by a factor ~30 between 100 and 300 s; every class predicts a
+  smooth decline and leaves the data at the upper edge of its band (z ≈ 2.5 at 70–140 s). This points to a hidden
+  process with a fairly well-defined time scale of ~2–3 min that none of the models contain in this form.
+
+Model posterior (`scripts/phase1_classify.py --name v2`; `results/phase1_classes/classify_v2.{json,pt}`,
+`figures/phase1_classify_v2.png`; 65 min):
+- Setup: 4 x 99,000 training simulations (equal numbers, i.e. equal prior model probabilities); 5 % validation;
+  the 4 x 1000 held-out batches as test set. Ensemble of 5 MLPs on robust-scaled, arcsinh-transformed summaries
+  (121 inputs); softmax temperature 0.93 fitted on the validation set.
+- Held-out: accuracy 0.80, log loss 0.49, ECE 0.009; reliability on the diagonal for every class.
+- Confusion (rows true, columns predicted):
+  - modal3-OU 0.90 / 0.06 / 0.02 / 0.02;
+  - modal4-OU 0.13 / 0.69 / 0.09 / 0.08;
+  - modal4 0.01 / 0.01 / 0.90 / 0.07;
+  - modal5 0.03 / 0.04 / 0.23 / 0.69.
+  modal4 vs modal5 and modal4-OU vs the rest are the hard pairs.
+- Data: p(modal5) = 0.64 (members 0.55–0.79), p(modal4) = 0.31 (0.17–0.43), p(modal4-OU) = 0.05 (0.03–0.09),
+  p(modal3-OU) = 7e-6.
+  - Discrete (modal4 + modal5) vs continuous within-mode disorder (modal4-OU): 19:1 (11–36 over members).
+  - modal5 vs modal4: 2:1, not decisive.
+- The data are typical for the simulations: their nearest-neighbour distance to the training set is exceeded by
+  55 % of the held-out simulations.
+
+Conclusions of v2 (these change the plan):
+1. The v1 preference for continuous within-mode disorder came from comparing against modal3 and against ML plug-ins.
+   Within the set {modal3-OU, modal4-OU, modal4, modal5}, inferred with the same machinery and checked
+   symmetrically, the summaries prefer discrete modal gating:
+   - modal5 (a fast mode split in kOC) or modal4, over modal4-OU by ~20:1;
+   - modal3-OU is excluded (it lacks the frozen mode).
+   The over-dispersion in fast episodes that motivated the continuum (Phase 0: Fano 5.1 vs 4.2–4.4 for the ML
+   plug-ins) is reproduced once the rates are inferred: posterior-predictive medians 5.09 (modal5) and 4.94 (modal4).
+2. The answer to "fixed or spread rates within modes" is therefore "fixed, with one more fast mode", at moderate
+   strength. The continuum is not excluded: modal4-OU passes the predictive checks, keeps sigma_OC = 0.23
+   [0.08, 0.32], and loses on Occam (4 extra parameters with broad priors). The odds depend on those priors.
+3. modal4 needs closing rates in tension with its own ML fit to match the summaries (Mahalanobis^2 36 over 17
+   dimensions); modal5 does not (13 over 22). This favours modal5 independently of the classifier.
+4. Residual common to all classes: the shape of the CK divergence from q0 = open at 30–300 s (plateau, then a sharp
+   drop). It points to a ~2–3 min process that none of the current classes contains.
+Caveats:
+- Model posteriors from non-sufficient summaries (Robert et al. 2011): they are posteriors given the summaries.
+- All class priors are centred on ML fits to the same data (empirical Bayes, symmetric across classes).
+- The NPEs over-concentrate slightly for the sharpest rates.
+- The model set is not exhaustive (no GLE-gated class; no modal5-OU; no hour-scale tier).
+
 ## Next steps
 
-- Phase 1, done for modal3-OU (v1, above): 10^5 simulations, NPE, SBC/TARP, posterior-predictive checks.
-- Phase 1, remaining, in order:
-  1. modal3-OU v2: tau_w ~ log-U[1, 3000] s, another 10^5 simulations (~3 h). Mixing tau_w ranges between rounds
-     needs care, so run it as a separate simulation set.
-  2. modal4-OU: the modal4 skeleton with OU disorder, prior around the modal4 ML fit (factor 2), 10^5 simulations.
-  3. Discrete classes modal4 and modal5 with the same rate priors (needs a numba AMM simulator, or modal-OU with
-     sigma = 0).
-  4. Model-posterior classifier over {modal3-OU, modal4, modal4-OU, modal5}, with SBC and symmetric
-     posterior-predictive checks (simulation-based posteriors for every class).
-  5. Optionally the GLE-gated class.
-  The speed-up that matters is `summaries.summary_vector`, at 0.33 of 0.45 s per simulation.
+- Phase 1 done: v1 (modal3-OU) and v2 (modal3-OU with extended tau_w, modal4-OU, modal4, modal5). NPE + SBC per
+  class, symmetric posterior-predictive checks, calibrated model posterior. See the two sections above.
+- Next, in order of information per CPU hour:
+  1. The common CK residual (plateau to ~70 s, sharp drop at 100–300 s from q0 = open). Add a CK-shape statistic at
+     finer lags (the summary vector has 24 log-spaced lags; ~8 fall in 30–300 s), and test whether a sixth mode with
+     a 2–3 min dwell, or a non-exponential (e.g. periodic-like or gamma-distributed) mode lifetime, reproduces it. A
+     gamma-distributed mode lifetime is a chain of identical states: it stays within AMMs.
+  2. Robustness of the 19:1 discrete-vs-continuous odds to the OU priors (sigma U[0, 0.5]; tau_w log-U[10, 3000] s),
+     by reweighting the existing modal4-OU simulations (no new runs needed), and a modal5-OU class only if the odds
+     move.
+  3. Paper-grade posteriors for the preferred class (modal5): NPE ensemble or sequential NPE around the data;
+     posterior over the fast-mode split.
+  4. The GLE-gated class (optional; NOTES "open questions" 1).
+  `summaries.summary_vector` now costs 0.14 s and the simulator 0.1 s per measurement: 10^5 simulations take
+  ~2 h on this VM with 4 workers.
 - Ask Hugel, in one email: the ATP traces (33,000 transitions); the smFRET traces under matching conditions; the 24 h
   traces and parallel-ruler ensemble; acquisition details (exposure time; whether the 10-Hz series is decimated from a
   faster acquisition — the absence of straddle frames suggests so). kHz bursts would make intra-well dynamics and the
@@ -351,14 +490,21 @@ Conclusions of v1 (these change the plan):
 
 - `src/hsp90memory/` — `io.py` (loading, idealisation), `amm.py` (AMM likelihood, fitting), `simulators.py` (AMM and
   nested modal-OU simulators, numpy reference and numba), `summaries.py` (summary statistics incl. CK divergence).
-  `tests/` — 9 tests, `pytest`.
+  `tests/` — 11 tests, `pytest`.
 - `scripts/` — `run_fits.py`, `run_general_seeded.py`, `predictive_checks.py`, `phase0_simulate.py`, `phase0_refit.py`,
   `phase0_analyse.py`, `phase1_simulate.py` (checkpointed simulation driver), `phase1_smoke_report.py`,
-  `phase1_npe.py` (NPE, SBC, TARP, posterior for the data), `phase1_ppc.py` (posterior-predictive checks vs modal3/4);
+  `phase1_npe.py` (NPE, SBC, TARP, posterior for the data), `phase1_ppc.py` (v1 posterior-predictive checks vs
+  modal3/4), `phase1_ppc_classes.py` (symmetric checks across classes), `phase1_classify.py` (model posterior),
+  `fit_modal5.py`, `run_phase1_v2.sh` (the v2 pipeline);
   `scripts/diagnostics/` — the model-free diagnostics (`plot_trace.py`, `within_state.py`,
   `dwell_memory.py`, `sticking_test.py`).
 - `results/*.json` — fitted generators Q, stationary distributions, log L, BIC; `results/phase0/` — summary vectors
   per setting (npz), refit log-likelihoods, `phase0_results.json`.
+- `results/phase1/` (v1), `results/phase1_m3ou_v2/`, `results/phase1_m4ou/`, `results/phase1_m4/`,
+  `results/phase1_m5/`: `settings.json`, logs, trained NPEs (`npe_<tag>.pt`), calibration (`npe_<tag>.json`,
+  `npe_<tag>_sbc.npz`), posterior samples for the data (`npe_<tag>_posterior_data.npz`); simulation batches are not
+  committed. `results/phase1_classes/`: symmetric posterior-predictive checks and the classifier.
+  `results/modal5.json`, `modal5_seeds.json`.
 - `figures/` — `1Thermal_overview.png`, `within_state.png`, `predictive_checks.png`, `phase0_identifiability.png`.
 - Data: `data/1Thermal.txt` … `4Thermal.txt` (not committed; Zenodo 12697153).
 

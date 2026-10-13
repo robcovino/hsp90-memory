@@ -1,1 +1,7 @@
 start from chain-5 combined optimum (global2) (grid 9)
+  ring4_oueq_g9: ll=-97970.631 nit=83 nfev=2046 379 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+refine on grid 15 from start from chain-5 combined optimum (global2)
+  ring4_oueq_g15: ll=-97971.155 nit=16 nfev=440 180 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+  grid 21: ll=-97971.325
+  grid 31: ll=-97971.445
+done ring4_oueq: ll=-97971.155 BIC=196155.4 time 561 s

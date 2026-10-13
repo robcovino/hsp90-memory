@@ -1,3 +1,9 @@
 start modal7_g chain 1 best (ll -98026.34)
   modal7: ll=-98013.200 nit=68 nfev=2442 63 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
 start modal7_v3 chain 0 best (ll -98040.81)
+  modal7: ll=-98034.909 nit=59 nfev=2211 54 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start modal7_v3 chain 3 best (ll -98040.91)
+  modal7: ll=-98034.902 nit=58 nfev=2310 47 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start modal7_g chain 3 best (ll -98043.28)
+  modal7: ll=-98034.889 nit=54 nfev=2046 44 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+done modal7_global2: ll=-98013.200 BIC=196351.2 time 208 s

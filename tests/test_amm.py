@@ -88,3 +88,14 @@ def test_ring_detailed_balance_and_driven_variant():
     Q = mo.Q(np.r_[amm.ring(4).init, np.log(0.4), np.log(100.0)])
     F = amm.stationary(Q)[:, None] * Q; np.fill_diagonal(F, 0)
     assert np.abs(F - F.T).max() < 1e-12 * F.max()
+
+
+def test_graph_reproduces_ring_and_is_balanced():
+    rng = np.random.default_rng(2)
+    r = amm.ring(4); th = r.init + rng.normal(0, 0.5, r.n_par)
+    g = amm.graph(4, amm.RING4)
+    assert g.n_par == r.n_par and np.abs(g.Q(th) - r.Q(th)).max() < 1e-14
+    for name in amm.NAMED_GRAPHS:
+        m = amm.named_graph(name); Q = m.Q(m.init + rng.normal(0, 0.5, m.n_par))
+        F = amm.stationary(Q)[:, None] * Q; np.fill_diagonal(F, 0)
+        assert np.abs(F - F.T).max() < 1e-12 * F.max()

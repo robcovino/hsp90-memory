@@ -34,6 +34,10 @@ DL = None
 
 
 def build(name, grid, couple):
+    if name in amm.NAMED_GRAPHS:
+        model = amm.named_graph(name); nb = model.n_par
+        ident = lambda x: np.asarray(x, float)
+        return model, np.full(nb, RATE_BOX[0]), np.full(nb, RATE_BOX[1]), ident, ident
     m = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou)?$", name); K = int(m.group(2))
     topo = "chain" if m.group(1) == "modal" else ("ring_noDB" if m.group(3) else "ring")
     if m.group(4):

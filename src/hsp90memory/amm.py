@@ -106,6 +106,64 @@ def ring(n_modes, db=True):
     return Model(f"ring{n_modes}" + ("" if db else "_noDB"), classes, build, n_par, np.array(init))
 
 
+def graph(n_modes, edges, db=True, name=None):
+    """Gating modes on an arbitrary graph. edges: list of (i, j) mode pairs. Per edge (in the listed order): a (O_i ->
+    O_j), b (O_j -> O_i), c (C_i -> C_j); d (C_j -> C_i) fixed by detailed balance on the square. The spanning tree is
+    built from the edges in the listed order; for every other edge (one per independent cycle) b is fixed by detailed
+    balance around the cycle of open states (db=True) or free (db=False). Parameters: kOC_m, kCO_m per mode, then per
+    edge a, [b], c. graph(n, [(0,1),(1,2),...,(n-1,0)]) has the parametrisation of ring(n)."""
+    K = 2 * n_modes; classes = [0, 1] * n_modes
+    parent = list(range(n_modes))
+    def find(x):
+        while parent[x] != x: x = parent[x]
+        return x
+    tree = []
+    for (i, j) in edges:
+        ri, rj = find(i), find(j)
+        tree.append(ri != rj)
+        if ri != rj: parent[ri] = rj
+    n_par = 2 * n_modes + sum(3 if (t or not db) else 2 for t in tree)
+
+    def build(r):
+        Q = np.zeros((K, K)); kOC = r[0:2 * n_modes:2]; kCO = r[1:2 * n_modes:2]; sw = list(r[2 * n_modes:])
+        A, B, Cc = [], [], []
+        for t in tree:
+            A.append(sw.pop(0)); B.append(sw.pop(0) if (t or not db) else np.nan); Cc.append(sw.pop(0))
+        if db:                                               # open-state potentials on the tree, then cycle closures
+            phi = {0: 0.0}; todo = [k for k, t in enumerate(tree) if t]
+            while todo:
+                for k in list(todo):
+                    i, j = edges[k]
+                    if i in phi: phi[j] = phi[i] + np.log(A[k] / B[k]); todo.remove(k)
+                    elif j in phi: phi[i] = phi[j] - np.log(A[k] / B[k]); todo.remove(k)
+            for k, t in enumerate(tree):
+                if not t:
+                    i, j = edges[k]; B[k] = A[k] * np.exp(phi[i] - phi[j])
+        for m in range(n_modes):
+            Q[2 * m, 2 * m + 1] = kOC[m]; Q[2 * m + 1, 2 * m] = kCO[m]
+        for k, (i, j) in enumerate(edges):
+            d = kOC[i] * Cc[k] * kCO[j] * B[k] / (kCO[i] * A[k] * kOC[j])
+            Q[2 * i, 2 * j] = A[k]; Q[2 * j, 2 * i] = B[k]; Q[2 * i + 1, 2 * j + 1] = Cc[k]; Q[2 * j + 1, 2 * i + 1] = d
+        return _finalize(Q)
+
+    init = np.r_[ring(n_modes).init[:2 * n_modes],
+                 np.concatenate([[np.log(1 / 900.)] + ([np.log(1 / 500.)] if (t or not db) else []) + [np.log(1 / 900.)]
+                                 for t in tree])]
+    m = Model(name or f"graph{n_modes}", classes, build, n_par, init); m.edges, m.tree = edges, tree
+    return m
+
+
+RING4 = [(0, 1), (1, 2), (2, 3), (3, 0)]
+NAMED_GRAPHS = {"ringL1": (5, RING4 + [(3, 4)]), "ringL2": (6, RING4 + [(3, 4), (4, 5)]),
+                "ringS2": (6, RING4 + [(3, 4), (3, 5)])}
+
+
+def named_graph(name, db=True):
+    """Discrete competitors on the ring skeleton (frozen 0, slow 1, open-biased 2, fast 3): a kOC ladder branching off
+    the fast mode, as a chain (ringL1, ringL2) or a star (ringS2)."""
+    n, e = NAMED_GRAPHS[name]; return graph(n, e, db=db, name=name)
+
+
 def ou_grid(n_grid=15, z_max=3.5):
     """Unit-variance Ornstein-Uhlenbeck coordinate on a grid, square-root approximation of the Fokker-Planck
     operator for U(z) = z^2/2. Returns (z, R1): z rescaled so that the discrete stationary distribution has unit

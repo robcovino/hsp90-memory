@@ -19,6 +19,8 @@ EDGES = np.array([0, 0.5, 1, 2, 5, 10, 20, 50, 100, 1e5])   # s
 
 
 def model_Q(name, grid):
+    if name in amm.NAMED_GRAPHS:
+        mo = amm.named_graph(name); th = np.array(json.load(open(best_fit_file(name)))["theta"]); return mo.Q(th), mo.classes, mo.n_par
     m = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou(eq|2)?F?)?$", name); K = int(m.group(2))
     topo = "chain" if m.group(1) == "modal" else ("ring_noDB" if m.group(3) else "ring")
     if m.group(4):

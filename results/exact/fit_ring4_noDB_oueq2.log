@@ -1,0 +1,12 @@
+start ring4_oueq optimum, b3 at DB value (grid 9)
+  ring4_noDB_oueq_g9: ll=-97970.599 nit=12 nfev=345 60 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start ring4_oueq optimum, log b3 -0.7 (grid 9)
+  ring4_noDB_oueq_g9: ll=-97970.589 nit=47 nfev=1334 346 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start ring4_oueq optimum, log b3 +0.7 (grid 9)
+  ring4_noDB_oueq_g9: ll=-97970.591 nit=37 nfev=966 322 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+refine on grid 15 from start ring4_oueq optimum, log b3 -0.7
+  ring4_noDB_oueq_g15: ll=-97971.119 nit=8 nfev=230 192 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+  grid 21: ll=-97971.290
+  grid 31: ll=-97971.410
+done ring4_noDB_oueq2: ll=-97971.119 BIC=196165.5 time 925 s
+fit_ring4_noDB_oueq_global.json is a copy of fit_ring4_noDB_oueq2.json (name expected by _fits.best_fit_file)

@@ -1,0 +1,2 @@
+ring4_oueq: d=21, start results/exact/fit_ring4_oueq.json, logpost at start -98003.631
+  Hessian done (152 s); smallest curvature 0.265

@@ -17,6 +17,8 @@ import sys; sys.path.insert(0, str(Path(__file__).resolve().parent)); from _fits
 
 
 def model_and_start(name, grid):
+    if name in amm.NAMED_GRAPHS:
+        return amm.named_graph(name), np.array(json.load(open(best_fit_file(name)))["theta"])
     m = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou(eq|2)?F?)?$", name); K = int(m.group(2))
     topo = "chain" if m.group(1) == "modal" else ("ring_noDB" if m.group(3) else "ring")
     if m.group(4):

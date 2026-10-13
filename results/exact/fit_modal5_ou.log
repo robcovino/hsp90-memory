@@ -1,0 +1,11 @@
+start sigma=0.25 tau=170.0 (grid 9)
+  modal5_ou_g9: ll=-98054.591 nit=43 nfev=1500 569 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start sigma=0.5 tau=30.0 (grid 9)
+  modal5_ou_g9: ll=-98227.435 nit=1 nfev=75 29 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start sigma=0.15 tau=1000.0 (grid 9)
+  modal5_ou_g9: ll=-98055.445 nit=21 nfev=850 572 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+refine on grid 15 from start 0.25,170
+  modal5_ou_g15: ll=-98055.119 nit=13 nfev=725 1010 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+  grid 21: ll=-98055.293
+  grid 31: ll=-98055.416
+done modal5_ou: ll=-98055.119 BIC=196353.8 time 2192 s

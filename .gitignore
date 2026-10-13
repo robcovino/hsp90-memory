@@ -15,3 +15,5 @@ sbi-logs/
 !results/phase1/ppc_*.npz
 results/phase1_*/batch_*.npz
 results/phase1_*/*.tmp
+results/exact/*_samples.npz
+results/exact/run_*.out

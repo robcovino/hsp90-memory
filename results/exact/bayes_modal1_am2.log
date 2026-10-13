@@ -1,0 +1,6 @@
+modal1_am2: d=2, start results/modal1.json, logpost at start -110891.101
+  Hessian done (0 s); smallest curvature 1.84e+05
+  MCMC done (139 s); acceptance [0.232, 0.251, 0.247, 0.231]
+  max R-hat 1.003; min ESS 1772; max tau 12
+  bridge log Z per chain [-110901.528 -110901.527 -110901.521 -110901.532]; pooled -110901.527 +- 0.002 (192 s)
+done modal1_am2: log Z = -110901.527 +- 0.002; time 192 s

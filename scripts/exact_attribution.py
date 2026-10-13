@@ -18,12 +18,13 @@ EDGES = np.array([0, 0.5, 1, 2, 5, 10, 20, 50, 100, 1e5])   # s
 
 
 def model_Q(name, grid):
-    m = re.match(r"modal(\d+)(_ou(eq|2)?)?$", name); K = int(m.group(1))
+    m = re.match(r"modal(\d+)(_ou(eq|2)?F?)?$", name); K = int(m.group(1))
     if m.group(2):
         couple = {None: "OC", "eq": "eq", "2": "both"}[m.group(3)]
         mo = amm.modal_ou(K, n_grid=grid, couple=couple)
         th = np.array(json.load(open(f"results/exact/fit_{name}.json"))["theta"]); return mo.Q(th), mo.classes, mo.n_par
-    p = Path(f"results/{name}.json") if Path(f"results/{name}.json").exists() else Path(f"results/exact/fit_{name}.json")
+    p = next(q for q in (Path(f"results/exact/fit_{name}_global.json"), Path(f"results/{name}.json"),
+                         Path(f"results/exact/fit_{name}.json")) if q.exists())
     mo = amm.modal(K); th = np.array(json.load(open(p))["theta"]); return mo.Q(th), mo.classes, mo.n_par
 
 
@@ -32,7 +33,10 @@ def main():
     ap.add_argument("--models", nargs="+", default=["modal4", "modal5", "modal6", "modal4_ou"])
     ap.add_argument("--ref", default="modal5")
     ap.add_argument("--grid", type=int, default=15)
+    ap.add_argument("--out", default="results/exact/attribution.json")
     a = ap.parse_args()
+    if Path(a.out).exists():
+        raise SystemExit(f"{a.out} exists")
     dl = [amm.load_dwells(f"data/{k}Thermal.txt")[1:] for k in "1234"]
     terms, npar = {}, {}
     for m in a.models:
@@ -40,6 +44,7 @@ def main():
         print(m, "ll", sum(t.sum() for t in terms[m]), flush=True)
     out = {"ref": a.ref, "grid": a.grid, "models": {}}
     fig, axs = plt.subplots(1, 4, figsize=(20, 4.5))
+    col = {m: f"C{i}" for i, m in enumerate([x for x in a.models if x != a.ref])}
     for m in a.models:
         if m == a.ref: continue
         D = [t - r for t, r in zip(terms[m], terms[a.ref])]
@@ -68,10 +73,10 @@ def main():
         out["models"][m] = res
         ctr = 0.5 * (EDGES[1:] + EDGES[:-1]); ctr[-1] = 200
         for k, lab in enumerate(("open", "closed")):
-            v = np.array(by_len[lab]); axs[k].semilogx(np.sqrt(np.maximum(v[:, 0], 0.1) * v[:, 1].clip(max=500)), v[:, 3], "o-", label=m)
-        v = np.array(res["by_previous_open"]); axs[2].semilogx(np.sqrt(np.maximum(v[:, 0], 0.1) * v[:, 1].clip(max=500)), v[:, 3], "o-", label=m)
+            v = np.array(by_len[lab]); axs[k].semilogx(np.sqrt(np.maximum(v[:, 0], 0.1) * v[:, 1].clip(max=500)), v[:, 3], "o-", color=col[m], label=m)
+        v = np.array(res["by_previous_open"]); axs[2].semilogx(np.sqrt(np.maximum(v[:, 0], 0.1) * v[:, 1].clip(max=500)), v[:, 3], "o-", color=col[m], label=m)
         for i, d in enumerate(D):
-            axs[3].plot(np.cumsum(dl[i][0]) * io.DT / 3600, np.cumsum(d), color=f"C{a.models.index(m)}", lw=1,
+            axs[3].plot(np.cumsum(dl[i][0]) * io.DT / 3600, np.cumsum(d), color=col[m], lw=1,
                         label=m if i == 0 else None)
         print(m, "vs", a.ref, json.dumps({k: res[k] for k in ("n_par_diff", "total", "per_trace", "by_state")}), flush=True)
     for ax, t in zip(axs, ("open dwells: sum of dlog p by duration", "closed dwells", "by preceding open dwell",
@@ -80,8 +85,8 @@ def main():
     axs[0].set_xlabel("dwell (s)"); axs[1].set_xlabel("dwell (s)"); axs[2].set_xlabel("preceding open dwell (s)")
     axs[3].set_xlabel("time in trace (h)"); axs[0].legend(fontsize=8); axs[3].legend(fontsize=8)
     fig.suptitle(f"per-dwell log-likelihood differences relative to {a.ref} (ML parameters)", fontsize=10)
-    fig.tight_layout(); fig.savefig("figures/exact_attribution.png", dpi=110)
-    json.dump(out, open("results/exact/attribution.json", "w"), indent=1)
+    fig.tight_layout(); fig.savefig(Path("figures") / (Path(a.out).stem.replace("attribution", "exact_attribution") + ".png"), dpi=110)
+    json.dump(out, open(a.out, "w"), indent=1)
 
 
 if __name__ == "__main__":

@@ -58,9 +58,10 @@ def main():
     ap.add_argument("--n-sets", type=int, default=100); ap.add_argument("--steps", type=int, default=8000)
     ap.add_argument("--fit-grid", type=int, default=7); ap.add_argument("--sim-grid", type=int, default=15)
     ap.add_argument("--workers", type=int, default=4); ap.add_argument("--seed", type=int, default=11)
+    ap.add_argument("--suffix", default="", help="posterior run suffix (bayes_<tag><suffix>_samples.npz)")
     a = ap.parse_args()
     is_ou = "_ou" in a.name
-    tag = a.name + ({"OC": "", "both": "2", "eq": "eq"}[a.couple] if is_ou else "")
+    tag = a.name + ({"OC": "", "both": "2", "eq": "eq"}[a.couple] if is_ou else "") + a.suffix
     out = Path(f"results/exact/coverage_{tag}.json")
     if out.exists():
         sys.exit(f"{out} exists")

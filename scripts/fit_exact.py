@@ -47,9 +47,12 @@ def main():
     ap.add_argument("--grid-fine", type=int, default=15)
     ap.add_argument("--grid-eval", type=int, nargs="*", default=[21, 31])
     ap.add_argument("--maxiter", type=int, default=400)
+    ap.add_argument("--init-json", default=None, help="JSON list of {'start': name, 'theta': [...]} (full theta, OU "
+                    "models: log-rates, log sigma, log tau); replaces the default starts")
+    ap.add_argument("--tag", default=None, help="output tag (default from name and coupling)")
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
-    tag = a.name + ({"OC": "", "both": "2", "eq": "eq"}[a.couple] if "_ou" in a.name else "")
+    tag = a.tag or a.name + ({"OC": "", "both": "2", "eq": "eq"}[a.couple] if "_ou" in a.name else "")
     out = OUT / f"fit_{tag}.json"
     if out.exists():
         sys.exit(f"{out} exists")
@@ -66,7 +69,12 @@ def main():
                                    ([(-3.0, 3.0)] if a.couple == "both" else []) + [(0.0, np.log(1e5))])
         mc = amm.modal_ou(K, n_grid=a.grid_opt, couple=a.couple)
         starts = []
-        for s in a.starts:
+        if a.init_json:
+            for d in json.load(open(a.init_json)):
+                log(f"start {d['start']} (grid {a.grid_opt})")
+                r = opt(mc, dl, np.array(d["theta"]), a.maxiter, bounds, log)
+                starts.append({"start": d["start"], "ll": -r.fun, "theta": r.x.tolist()})
+        for s in ([] if a.init_json else a.starts):
             sg, tau = map(float, s.split(","))
             x0 = np.r_[th0, np.log(sg), 0.0] if a.couple == "both" else np.r_[th0, np.log(sg)]
             x0 = np.r_[x0, np.log(tau)]

@@ -5,8 +5,9 @@ Priors (data-independent; box-uniform in the sampling parameters phi):
   every free rate: log-uniform on [1e-7, 1e2] s^-1;   sigma_OC: uniform on [0, 2];   tau_w: log-uniform on [1, 1e4] s.
 Sampling space: u = logit((phi - lo) / (hi - lo)), prior density in u = prod s(u)(1 - s(u)).
 MCMC: --chains independent chains in parallel processes, each started at the ML point + small jitter, Gaussian random-
-walk proposal with covariance from the numerical Hessian at the mode, adapted (Haario et al. 2001) during the first
-half (burn-in, discarded); the second half uses the frozen proposal. Diagnostics: split-R-hat, integrated
+walk proposal starting from the numerical Hessian at the mode, adapted during the first half (burn-in, discarded;
+Andrieu & Thoms 2008: running covariance with clipped eigenvalues + Robbins-Monro global scale, target acceptance
+0.234); the second half uses the frozen proposal. (Runs before 2026-10-13 03:00 UTC used plain Haario adaptation.) Diagnostics: split-R-hat, integrated
 autocorrelation time and ESS (emcee.autocorr), acceptance.
 Evidence: bridge sampling (Meng & Wong 1996; iterative scheme, Gronau et al. 2017) with a multivariate normal proposal
 fitted to the first half of the post-burn-in samples and evaluated against the second half; reported per chain
@@ -84,25 +85,34 @@ def hessian(f, x, h=1e-3):
     return H
 
 
+def _clip_cov(C, lo=1e-6, hi=4.0):
+    w, V = np.linalg.eigh((C + C.T) / 2); return (V * np.clip(w, lo, hi)) @ V.T
+
+
 def chain(args):
+    """Adaptive Metropolis (Andrieu & Thoms 2008, alg. 4): during burn-in the proposal covariance is the running
+    covariance of the chain (eigenvalues clipped to [1e-6, 4] in logit units, i.e. sd <= 2) and a global log-scale is
+    tuned by Robbins-Monro towards acceptance 0.234; both are frozen for the sampling half."""
     name, grid, couple, u0, cov0, steps, seed = args
     T = Target(name, grid, couple); rng = np.random.default_rng(seed); d = T.d
     x = u0 + rng.multivariate_normal(np.zeros(d), 0.1 * cov0); lp, lpr = T.logpost(x)
-    sc = 2.38 ** 2 / d; C = cov0.copy(); L = np.linalg.cholesky(sc * C + 1e-10 * np.eye(d))
+    sc = 2.38 ** 2 / d; C = _clip_cov(cov0); L = np.linalg.cholesky(sc * C + 1e-10 * np.eye(d)); log_s = 0.0
     burn = steps // 2; X = np.empty((steps - burn, d)); LP = np.empty(steps - burn); LL = np.empty(steps - burn)
     acc = 0; mean = x.copy(); M2 = np.zeros((d, d)); n_ad = 0; t0 = time.time()
     for t in range(steps):
-        y = x + L @ rng.standard_normal(d)
+        y = x + np.exp(log_s) * (L @ rng.standard_normal(d))
         ly, lyr = T.logpost(y)
-        if np.log(rng.random()) < ly - lp:
+        a_prob = np.exp(min(0.0, ly - lp)) if np.isfinite(ly) else 0.0
+        if rng.random() < a_prob:
             x, lp, lpr = y, ly, lyr; acc += t >= burn
-        if t < burn:                                   # Haario adaptation on the burn-in history
+        if t < burn:
+            log_s += (t + 1) ** -0.6 * (a_prob - 0.234)
             n_ad += 1; dx = x - mean; mean += dx / n_ad; M2 += np.outer(dx, x - mean)
             if t >= 1000 and t % 200 == 0:
-                C = M2 / (n_ad - 1); L = np.linalg.cholesky(sc * C + 1e-8 * np.eye(d))
+                C = _clip_cov(M2 / (n_ad - 1)); L = np.linalg.cholesky(sc * C + 1e-10 * np.eye(d))
         else:
             X[t - burn] = x; LP[t - burn] = lp; LL[t - burn] = lp - lpr
-    return dict(X=X, LP=LP, LL=LL, acc=acc / (steps - burn), time=time.time() - t0)
+    return dict(X=X, LP=LP, LL=LL, acc=acc / (steps - burn), log_scale=log_s, time=time.time() - t0)
 
 
 def bridge(lq1, lg1, lq2, lg2, tol=1e-10, maxit=1000):
@@ -152,9 +162,11 @@ def main():
     ap.add_argument("--n-grid-corr", type=int, default=400)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--start", default=None, help="JSON with 'theta' (model parametrisation) for the start point")
+    ap.add_argument("--suffix", default="", help="appended to the output tag (e.g. _long for a longer rerun)")
     a = ap.parse_args()
     is_ou = "_ou" in a.name
-    tag = a.name + ({"OC": "", "both": "2", "eq": "eq"}[a.couple] if is_ou else "")
+    base_tag = a.name + ({"OC": "", "both": "2", "eq": "eq"}[a.couple] if is_ou else "")
+    tag = base_tag + a.suffix
     OUT.mkdir(parents=True, exist_ok=True); out = OUT / f"bayes_{tag}.json"
     if out.exists():
         sys.exit(f"{out} exists")
@@ -164,7 +176,13 @@ def main():
     DL = [amm.load_dwells(f"data/{k}Thermal.txt")[1:] for k in "1234"]
     t0 = time.time()
     T = Target(a.name, a.grid, a.couple)
-    start = a.start or (f"results/exact/fit_{tag}.json" if is_ou else f"results/{a.name}.json")
+    if a.start:
+        start = a.start
+    elif is_ou:
+        start = f"results/exact/fit_{base_tag}.json"
+    else:
+        start = str(next(q for q in (Path(f"results/exact/fit_{a.name}_global.json"), Path(f"results/{a.name}.json"),
+                                     Path(f"results/exact/fit_{a.name}.json")) if q.exists()))
     th = np.array(json.load(open(start))["theta"]); u_hat = T.u(T.to_phi(th))
     f = lambda u: T.logpost(u)[0]
     log(f"{tag}: d={T.d}, start {start}, logpost at start {f(u_hat):.3f}")

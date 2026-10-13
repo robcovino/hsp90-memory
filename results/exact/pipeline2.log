@@ -1,0 +1,523 @@
+=== 2026-10-13T00:43:29Z START global ladder fits
+modal5 results/modal5.json: start ll -98104.12 -> [-98104.11986688011, -98104.09870333267, -98104.09700389525, -98094.29378899149] (72 s)
+modal5 mcmc chain 2: start ll -98107.61 -> [-98104.0836782386, -98094.3277796872, -98104.08114610481, -98094.3257869391] (84 s)
+modal5 mcmc chain 0: start ll -98106.57 -> [-98104.21462225399, -98104.19644551136, -98093.98531994649, -98104.3062984357] (87 s)
+modal5 mcmc chain 1: start ll -98107.19 -> [-98104.07162031427, -98094.3284609304, -98104.0751826099, -98094.33393173141] (96 s)
+modal5 mcmc chain 3: start ll -98106.85 -> [-98104.22798757268, -98094.40767161947, -98104.23367754465, -98094.34562678682] (95 s)
+modal5 split0 of modal4: start ll -98147.35 -> [-98125.27161683916, -98125.26419729537, -98125.24772864273, -98125.2368803504] (134 s)
+modal5 split3 of modal4: start ll -98915.70 -> [-98104.28931242335, -98104.12962391, -98104.15085388462, -98104.14789608604] (102 s)
+modal5 split2 of modal4: start ll -98287.43 -> [-98125.35797712218, -98125.39733821269, -98125.3360527232, -98125.3952554186] (177 s)
+modal5 split1 of modal4: start ll -98275.03 -> [-98134.26609229826, -98134.20955895561, -98134.20108690018, -98134.1888313691] (208 s)
+modal5 delete0 of modal6: start ll -98388.22 -> [-98246.16663576753, -98246.14790447438, -98246.14129715045, -98246.14410009695] (131 s)
+modal5 delete2 of modal6: start ll -98352.32 -> [-98147.83446047346, -98147.83682862867, -98147.84021745913, -98147.8310145365] (115 s)
+modal5 delete1 of modal6: start ll -99471.21 -> [-98147.8326110447, -98147.83529612701, -98147.83731736086, -98147.85127745211] (123 s)
+modal5 delete3 of modal6: start ll -98785.77 -> [-98097.9420748208, -98097.92955555805, -98097.93131331811, -98097.92922881235] (110 s)
+modal5 delete4 of modal6: start ll -98143.40 -> [-98098.35070300609, -98098.36350267829, -98092.3368423252, -98092.33665928748] (97 s)
+modal5 ladder [2.0]: start ll -98117.00 -> [-98092.36157427373, -98092.35431011867, -98092.35841943065, -98092.36871666649] (74 s)
+modal5 delete5 of modal6: start ll -98099.17 -> [-98092.32629873777, -98092.33415709768, -98108.47938091235, -98092.327933511] (90 s)
+modal5 ladder [3.0]: start ll -98127.46 -> [-98092.36446397829, -98092.35914894339, -98108.45794818184, -98092.34574234342] (74 s)
+modal5 ladder [1.8]: start ll -98119.81 -> [-98092.35850447921, -98092.36051899038, -98108.46388930318, -98092.36468240974] (83 s)
+modal5 global best -98092.326 from delete5 of modal6; BIC 196407.9
+modal6 results/exact/fit_modal6.json: start ll -98087.83 -> [-98087.83182961494, -98087.25363621811, -98087.30559721238, -98105.50687788356] (120 s)
+modal6 mcmc chain 2: start ll -98062.53 -> [-98058.0275782624, -98058.02715056426, -98058.0348537637, -98058.03355776044] (130 s)
+modal6 mcmc chain 0: start ll -98060.50 -> [-98058.02745989247, -98058.02984488476, -98058.03014719108, -98078.45267843534] (135 s)
+modal6 mcmc chain 1: start ll -98062.08 -> [-98058.26104898074, -98058.22848962614, -98058.17869342412, -98078.5241522948] (177 s)
+modal6 split0 of modal5: start ll -98105.93 -> [-98084.02155107107, -98084.01565757178, -98084.01033583234, -98083.98984848711] (156 s)
+modal6 mcmc chain 3: start ll -98083.28 -> [-98078.99866328742, -98095.27172987124, -98079.00524625377, -98078.99211982467] (175 s)
+modal6 split1 of modal5: start ll -98234.53 -> [-98084.04984558652, -98084.03488167879, -98100.0363546389, -98084.04382415893] (219 s)
+modal6 split2 of modal5: start ll -98244.21 -> [-98084.1722789207, -98100.13252322897, -98100.08263448927, -98084.0843975078] (231 s)
+modal6 split4 of modal5: start ll -98146.54 -> [-98058.13667020781, -98058.11989584348, -98058.13156607645, -98058.13413754966] (164 s)
+modal6 ladder [2.0, 6.0]: start ll -98099.92 -> [-98058.11210039201, -98078.64097949034, -98078.58318497427, -98058.11775466565] (149 s)
+modal6 split3 of modal5: start ll -98807.16 -> [-98101.31656634352, -98101.110564252, -98089.05987646898, -98101.43430298954] (227 s)
+modal6 ladder [3.0, 10.0]: start ll -98111.88 -> [-98058.10861490491, -98058.10933168465, -98058.13003742987, -98058.14227049591] (141 s)
+modal6 ladder [1.8, 4.0]: start ll -98107.31 -> [-98058.11236490225, -98058.1609026567, -98058.1046116068, -98058.08815166252] (146 s)
+modal6 global best -98058.027 from mcmc chain 2; BIC 196390.1
+modal7 split0 of modal6: start ll -98071.17 -> [-98049.50943143576, -98049.54299046073, -98049.4775119769, -98049.47726849554] (282 s)
+modal7 split3 of modal6: start ll -98771.02 -> [-98058.13738419182, -98058.674451798, -98073.30331071981, -98073.39137189875] (346 s)
+modal7 split2 of modal6: start ll -98202.03 -> [-98049.74220176398, -98069.86538083533, -98049.67128369588, -98069.88832082922] (368 s)
+modal7 split1 of modal6: start ll -98204.14 -> [-98049.60758868625, -98049.6121465279, -98069.81675653513, -98049.57974465698] (389 s)
+modal7 split5 of modal6: start ll -98060.95 -> [-98055.33888395141, -98074.04645579788, -98074.58385948915, -98055.20700437322] (221 s)
+modal7 ladder [3.0, 10.0, 30.0]: start ll -98110.79 -> [-98055.77246079216, -98055.67702834327, -98055.43454599561, -98055.3137870742] (250 s)
+modal7 split4 of modal6: start ll -98132.28 -> [-98057.67446246376, -98057.72616646407, -98057.65476974926, -98057.6338207857] (364 s)
+modal7 ladder [2.0, 6.0, 15.0]: start ll -98094.93 -> [-98055.92372138755, -98055.86618493867, -98056.0693256004, -98056.26236067973] (328 s)
+modal7 ladder [1.8, 4.0, 10.0]: start ll -98096.52 -> [-98055.93950620467, -98055.95634447661, -98056.20496841513, -98055.79021801558] (209 s)
+modal7 global best -98049.477 from split0 of modal6; BIC 196423.7
+=== 2026-10-13T01:15:22Z OK
+=== 2026-10-13T01:15:22Z START bayes modal5 (global start)
+modal5_g: d=22, start results/exact/fit_modal5_global.json, logpost at start -98127.386
+  Hessian done (15 s); smallest curvature 0.117
+  MCMC done (944 s); acceptance [0.133, 0.064, 0.15, 0.151]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [870.66854695]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [628.10009375]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2369.19879365]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2623.99690976]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1631.96956335]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [799.22413044]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3965.11417664]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3915.39222207]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3092.96400275]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [770.57498972]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [763.95709643]
+  max R-hat 2.066; min ESS 146; max tau 3965
+  bridge log Z per chain [-98181.72  -98181.817 -98182.087 -98181.998]; pooled -98181.895 +- 0.083 (1009 s)
+done modal5_g: log Z = -98181.895 +- 0.083; time 1010 s
+=== 2026-10-13T01:32:13Z OK
+=== 2026-10-13T01:32:13Z START bayes modal6 (global start)
+modal6_g: d=27, start results/exact/fit_modal6_global.json, logpost at start -98103.067
+  Hessian done (25 s); smallest curvature 0.0721
+  MCMC done (1075 s); acceptance [0.127, 0.136, 0.082, 0.146]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [901.806785]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [850.6861261]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [740.10437623]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [826.95960498]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [774.96302316]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2654.99906231]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2711.63474663]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2367.20541519]
+  max R-hat 1.452; min ESS 383; max tau 2712
+  bridge log Z per chain [-98162.839 -98162.651 -98162.883 -98162.587]; pooled -98162.732 +- 0.072 (1148 s)
+done modal6_g: log Z = -98162.732 +- 0.072; time 1149 s
+=== 2026-10-13T01:51:23Z OK
+=== 2026-10-13T01:51:23Z START bayes modal7 (global start)
+modal7_g: d=32, start results/exact/fit_modal7_global.json, logpost at start -98104.093
+  Hessian done (42 s); smallest curvature 0.0583
+  MCMC done (1180 s); acceptance [0.141, 0.001, 0.031, 0.037]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1218.72524062]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1109.27989495]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1573.8826574]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2407.36306462]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1491.49986187]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2603.78313651]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [627.9734418]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1290.56819522]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2073.19567451]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [646.18351835]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1971.73561512]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [827.24300219]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [886.9929569]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1085.58696118]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1548.67859418]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [845.79666242]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [758.9784624]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1011.05266369]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1372.27744607]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1211.38001767]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1310.75425635]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [872.39110854]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2016.23875824]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1498.65409412]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1248.14905487]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [602.01854538]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2892.59873999]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3895.74926285]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2376.56900649]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2666.17936788]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2163.79563884]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [4037.86244147]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2362.78047328]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [4158.13047066]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2065.99995044]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3146.05107814]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1403.14819269]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3558.08158197]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [826.32892352]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3424.1926104]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3569.14491926]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2922.44954991]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [4012.61177661]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1931.07112245]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3522.51785059]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3582.64437133]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [4081.94291743]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2837.97982056]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3788.43323141]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1146.29177505]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2811.08148901]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [4256.67406696]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2482.02569575]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2500.5022818]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3084.97029217]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [4014.44052503]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2960.83296524]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1703.66892939]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1785.45757931]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1560.80409965]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1302.94946567]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [683.19369036]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [685.64205868]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2218.59587808]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1159.97283947]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1245.05352441]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1454.91477455]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [807.93097551]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [660.09068543]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3614.09369098]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2326.22956741]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2665.8973407]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [938.86309933]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1842.17874394]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3259.76579946]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2726.99959356]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2700.92753165]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2387.65322104]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [874.29157877]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [644.90058038]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [687.66104443]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2048.39714594]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2202.33674846]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1682.81151531]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1030.83337451]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1641.23663846]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3621.81119321]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1636.80178509]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1972.29631448]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [612.37294672]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [769.75498949]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [658.98945542]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [947.39794014]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3661.71248625]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2683.39732609]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1684.37019727]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [631.15919351]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3383.73413991]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3310.01454114]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3179.22535548]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2845.24506411]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3764.27527622]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1605.13138461]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1655.49561652]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [600.37241908]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2721.48158688]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [1875.15611358]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3553.25387146]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2514.7834285]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [638.00895231]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3584.24358873]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [3436.32629956]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 600;
+tau: [2003.26322049]
+  max R-hat 2.182; min ESS 57; max tau 4257
+  bridge log Z per chain [-98172.898 -98271.821 -98162.073 -98159.177]; pooled -98160.510 +- 26.939 (1254 s)
+done modal7_g: log Z = -98160.510 +- 26.939; time 1255 s
+=== 2026-10-13T02:12:19Z OK
+=== 2026-10-13T02:12:19Z START attribution
+modal4 ll -98133.695328504
+modal5 ll -98092.32629873784
+modal6 ll -98058.02715056419
+modal7 ll -98049.4772684956
+modal4_ou ll -98056.5852997434
+modal4_oueq ll -98056.87057542
+modal4 vs modal5 {"n_par_diff": -5, "total": -41.36902976616036, "per_trace": [0.24170159008077663, -11.413305812949755, -21.161936943338695, -9.035488599952686], "by_state": {"open": -44.57669469961514, "closed": 3.207664933454772}}
+modal6 vs modal5 {"n_par_diff": 5, "total": 34.299148173667376, "per_trace": [2.9727592856260334, 1.1012567018971255, 3.095631404269915, 27.1295007818743], "by_state": {"open": 30.281587971991513, "closed": 4.017560201675854}}
+modal7 vs modal5 {"n_par_diff": 10, "total": 42.8490302422529, "per_trace": [-0.03852404585815217, 6.3405412502729055, 6.66953834458714, 29.877474693251006], "by_state": {"open": 29.36387865197277, "closed": 13.48515159028013}}
+modal4_ou vs modal5 {"n_par_diff": -3, "total": 35.74099899446398, "per_trace": [-2.6287461250462587, 9.037333367939047, 4.768021561530647, 24.564390190040548], "by_state": {"open": 31.492095423363466, "closed": 4.24890357110052}}
+modal4_oueq vs modal5 {"n_par_diff": -3, "total": 35.45572331784636, "per_trace": [-2.4138997537191944, 8.51562928471839, 4.985987654005547, 24.368006132841625], "by_state": {"open": 31.415031266830773, "closed": 4.0406920510155935}}
+=== 2026-10-13T02:12:23Z OK
+=== 2026-10-13T02:12:23Z START cross-validation
+modal4 -98177.16 delta -30.52 [  3.36 -10.66 -17.75  -5.47]
+modal5 -98146.64 delta 0.0 [0. 0. 0. 0.]
+modal6 -98115.81 delta 30.83 [-0.69  3.02  6.2  22.29]
+modal7 -98099.24 delta 47.39 [-6.79 18.85  9.6  25.74]
+modal4_ou -98101.21 delta 45.43 [-4.29  9.43 12.46 27.83]
+modal4_oueq -98100.29 delta 46.35 [-4.19 10.15 12.36 28.02]
+=== 2026-10-13T02:18:22Z OK
+=== 2026-10-13T02:18:22Z START ppc exact
+modal4 done 92 s
+modal5 done 184 s
+modal6 done 275 s
+modal7 done 367 s
+modal4-OU done 467 s
+modal4-OUeq done 566 s
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+modal4 {'n_stats': 113, 'outside_95': 15, 'n_abs_z_gt_3': 7, 'sum_z2': 249.42273508541854}
+  rms z by group: {'acf': 1.8, 'cc': 1.0, 'ck_closed': 2.01, 'ck_open': 2.28, 'closed_frac': 0.14, 'fano': 1.15, 'logqC': 0.44, 'logqO': 0.39, 'oc': 0.42, 'oo': 0.75, 'rate1min': 1.42, 'rate2min': 0.8, 'sv2d': 0.92}
+modal5 {'n_stats': 113, 'outside_95': 16, 'n_abs_z_gt_3': 8, 'sum_z2': 248.88419904690454}
+  rms z by group: {'acf': 1.75, 'cc': 1.09, 'ck_closed': 2.11, 'ck_open': 2.34, 'closed_frac': 0.17, 'fano': 1.0, 'logqC': 0.47, 'logqO': 0.39, 'oc': 0.42, 'oo': 0.75, 'rate1min': 1.08, 'rate2min': 0.49, 'sv2d': 0.82}
+modal6 {'n_stats': 113, 'outside_95': 15, 'n_abs_z_gt_3': 7, 'sum_z2': 229.28533356978258}
+  rms z by group: {'acf': 1.8, 'cc': 1.18, 'ck_closed': 1.95, 'ck_open': 2.27, 'closed_frac': 0.25, 'fano': 0.71, 'logqC': 0.44, 'logqO': 0.46, 'oc': 0.37, 'oo': 0.76, 'rate1min': 0.8, 'rate2min': 0.45, 'sv2d': 0.84}
+modal7 {'n_stats': 113, 'outside_95': 3, 'n_abs_z_gt_3': 0, 'sum_z2': 79.25539746309954}
+  rms z by group: {'acf': 0.8, 'cc': 1.09, 'ck_closed': 1.11, 'ck_open': 0.81, 'closed_frac': 0.13, 'fano': 0.75, 'logqC': 0.49, 'logqO': 0.43, 'oc': 0.43, 'oo': 0.76, 'rate1min': 0.87, 'rate2min': 0.53, 'sv2d': 0.97}
+modal4-OU {'n_stats': 113, 'outside_95': 11, 'n_abs_z_gt_3': 4, 'sum_z2': 145.78921535478935}
+  rms z by group: {'acf': 1.51, 'cc': 0.99, 'ck_closed': 1.46, 'ck_open': 1.56, 'closed_frac': 0.19, 'fano': 0.47, 'logqC': 0.42, 'logqO': 0.46, 'oc': 0.23, 'oo': 0.94, 'rate1min': 1.04, 'rate2min': 0.65, 'sv2d': 0.84}
+modal4-OUeq {'n_stats': 113, 'outside_95': 13, 'n_abs_z_gt_3': 3, 'sum_z2': 130.51701753827228}
+  rms z by group: {'acf': 1.39, 'cc': 0.98, 'ck_closed': 1.39, 'ck_open': 1.44, 'closed_frac': 0.14, 'fano': 0.46, 'logqC': 0.42, 'logqO': 0.4, 'oc': 0.22, 'oo': 0.93, 'rate1min': 1.01, 'rate2min': 0.59, 'sv2d': 0.81}
+total 566 s
+=== 2026-10-13T02:27:51Z OK
+=== 2026-10-13T02:27:51Z START coverage modal4_ou (eq)
+=== 2026-10-13T02:34:23Z pipeline2 stopped by hand during 'coverage modal4_ou (eq)' (coverage continues); next steps in run_exact_pipeline3.sh
+cv.json from pipeline2 renamed to cv_v2.json (2026-10-13T02:39:32Z); pipeline3 writes cv_v3.json
+attribution.json from pipeline2 renamed to attribution_v2.json

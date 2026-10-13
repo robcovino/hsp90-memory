@@ -1,0 +1,6 @@
+modal5_g: d=22, start results/exact/fit_modal5_global.json, logpost at start -98127.386
+  Hessian done (15 s); smallest curvature 0.117
+  MCMC done (944 s); acceptance [0.133, 0.064, 0.15, 0.151]
+  max R-hat 2.066; min ESS 146; max tau 3965
+  bridge log Z per chain [-98181.72  -98181.817 -98182.087 -98181.998]; pooled -98181.895 +- 0.083 (1009 s)
+done modal5_g: log Z = -98181.895 +- 0.083; time 1010 s

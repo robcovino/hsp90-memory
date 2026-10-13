@@ -1,0 +1,44 @@
+=== 2026-10-12T19:50:21Z START bayes modal6
+Traceback (most recent call last):
+  File "/home/ubuntu/hsp90-memory/scripts/bayes_exact.py", line 239, in <module>
+    main()
+  File "/home/ubuntu/hsp90-memory/scripts/bayes_exact.py", line 168, in main
+    th = np.array(json.load(open(start))["theta"]); u_hat = T.u(T.to_phi(th))
+                            ^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/modal6.json'
+=== 2026-10-12T19:50:22Z FAILED (0)
+=== 2026-10-12T19:50:22Z START bayes modal4_ou
+modal4_ou: d=19, start results/exact/fit_modal4_ou.json, logpost at start -98085.865
+  Hessian done (142 s); smallest curvature 0.362
+  MCMC done (8536 s); acceptance [0.214, 0.168, 0.222, 0.165]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 400;
+tau: [850.02783401]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 400;
+tau: [627.59574]
+  max R-hat 1.018; min ESS 358; max tau 850
+  bridge log Z per chain [-98133.133 -98133.299 -98133.298 -98133.293]; pooled -98133.253 +- 0.041 (9245 s)
+  grid correction: {'15': {'dlogZ': -0.5906860438151584, 'dll_mean': -0.6024226095525955, 'dll_sd': 0.15564533959616778}, '21': {'dlogZ': -0.7728606905945838, 'dll_mean': -0.7896094649205042, 'dll_sd': 0.18606154367203173}}
+done modal4_ou: log Z = -98133.253 +- 0.041; time 9384 s
+=== 2026-10-12T22:26:47Z OK
+=== 2026-10-12T22:26:47Z START bayes modal4_oueq
+modal4_oueq: d=19, start results/exact/fit_modal4_oueq.json, logpost at start -98086.159
+  Hessian done (126 s); smallest curvature 0.3
+  MCMC done (7308 s); acceptance [0.191, 0.182, 0.182, 0.168]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 400;
+tau: [548.55656674]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 400;
+tau: [626.92864474]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 400;
+tau: [604.12424391]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 400;
+tau: [558.44970091]
+  max R-hat 1.022; min ESS 217; max tau 627
+  bridge log Z per chain [-98133.468 -98133.447 -98133.622 -98133.521]; pooled -98133.512 +- 0.039 (7990 s)
+  grid correction: {'15': {'dlogZ': -0.5716182420475695, 'dll_mean': -0.5837591420226818, 'dll_sd': 0.15762916929221324}, '21': {'dlogZ': -0.7496259875672289, 'dll_mean': -0.7673962198861409, 'dll_sd': 0.19085946292371028}}
+done modal4_oueq: log Z = -98133.512 +- 0.039; time 8141 s

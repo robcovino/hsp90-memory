@@ -1,0 +1,7 @@
+modal4_ou: d=19, start results/exact/fit_modal4_ou.json, logpost at start -98085.865
+  Hessian done (142 s); smallest curvature 0.362
+  MCMC done (8536 s); acceptance [0.214, 0.168, 0.222, 0.165]
+  max R-hat 1.018; min ESS 358; max tau 850
+  bridge log Z per chain [-98133.133 -98133.299 -98133.298 -98133.293]; pooled -98133.253 +- 0.041 (9245 s)
+  grid correction: {'15': {'dlogZ': -0.5906860438151584, 'dll_mean': -0.6024226095525955, 'dll_sd': 0.15564533959616778}, '21': {'dlogZ': -0.7728606905945838, 'dll_mean': -0.7896094649205042, 'dll_sd': 0.18606154367203173}}
+done modal4_ou: log Z = -98133.253 +- 0.041; time 9384 s

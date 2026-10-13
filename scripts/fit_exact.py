@@ -60,14 +60,15 @@ def main():
     def log(msg):
         print(msg, flush=True); logf.write(msg + "\n"); logf.flush()
     dl = data(); n_dw = sum(len(x[0]) for x in dl); t0 = time.time()
-    mm = re.match(r"modal(\d+)(_ou)?$", a.name); K = int(mm.group(1)); is_ou = bool(mm.group(2))
+    mm = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou)?$", a.name); K = int(mm.group(2)); is_ou = bool(mm.group(4))
+    topo = "chain" if mm.group(1) == "modal" else ("ring_noDB" if mm.group(3) else "ring")
     res = {"name": tag, "n_dwells": n_dw, "args": vars(a)}
     if is_ou:
-        th0 = np.array(json.load(open(f"results/modal{K}.json"))["theta"])
-        nb = amm.modal(K).n_par
+        th0 = np.array(json.load(open(f"results/modal{K}.json"))["theta"]) if topo == "chain" else None
+        nb = amm.modal_ou(K, n_grid=3, couple=a.couple, topology=topo).base.n_par
         bounds = [(-20, 5)] * nb + ([(np.log(1e-3), np.log(3.0))] +
                                    ([(-3.0, 3.0)] if a.couple == "both" else []) + [(0.0, np.log(1e5))])
-        mc = amm.modal_ou(K, n_grid=a.grid_opt, couple=a.couple)
+        mc = amm.modal_ou(K, n_grid=a.grid_opt, couple=a.couple, topology=topo)
         starts = []
         if a.init_json:
             for d in json.load(open(a.init_json)):
@@ -81,29 +82,34 @@ def main():
             log(f"start sigma={sg} tau={tau} (grid {a.grid_opt})")
             r = opt(mc, dl, x0, a.maxiter, bounds, log); starts.append({"start": s, "ll": -r.fun, "theta": r.x.tolist()})
         best = max(starts, key=lambda d: d["ll"])
-        mf = amm.modal_ou(K, n_grid=a.grid_fine, couple=a.couple)
+        mf = amm.modal_ou(K, n_grid=a.grid_fine, couple=a.couple, topology=topo)
         log(f"refine on grid {a.grid_fine} from start {best['start']}")
         r = opt(mf, dl, np.array(best["theta"]), a.maxiter, bounds, log)
         th = r.x; ll = -r.fun
         ev = {a.grid_fine: ll}
         for g in a.grid_eval:
-            mg = amm.modal_ou(K, n_grid=g, couple=a.couple)
+            mg = amm.modal_ou(K, n_grid=g, couple=a.couple, topology=topo)
             ev[g] = float(amm.loglik_Q(mg.Q(th), mg.classes, dl)); log(f"  grid {g}: ll={ev[g]:.3f}")
         # Richardson-type extrapolation assuming error ~ 1/n^2 from the two finest grids
         g1, g2 = sorted(ev)[-2:]; ll_inf = ev[g2] + (ev[g2] - ev[g1]) * g1 ** 2 / (g2 ** 2 - g1 ** 2)
         n_par = mf.n_par
-        res.update({"model": mf.name, "K_modes": K, "couple": a.couple, "n_par": n_par, "starts": starts,
+        res.update({"model": mf.name, "K_modes": K, "topology": topo, "couple": a.couple, "n_par": n_par, "starts": starts,
                     "grid_fine": a.grid_fine, "theta": th.tolist(), "ll": ll, "ll_grid": {str(k): v for k, v in ev.items()},
                     "ll_extrapolated": float(ll_inf), "bic": float(amm.bic(ll, n_par, n_dw)),
                     "bic_extrapolated": float(amm.bic(ll_inf, n_par, n_dw)),
                     "sigma_OC": float(np.exp(th[nb])), "tau_w": float(np.exp(th[-1])),
                     "sigma_CO": float(th[nb + 1]) if a.couple == "both" else 0.0})
     else:
-        m = amm.modal(K)
-        prev = np.array(json.load(open(f"results/modal{K - 1}.json"))["theta"]); Kp = K - 1
-        modes = [prev[2 * i:2 * i + 2] for i in range(Kp)]; coup = [prev[2 * Kp + 3 * i:2 * Kp + 3 * i + 3] for i in range(Kp - 1)]
+        m = amm.modal(K) if topo == "chain" else amm.ring(K, db=(topo == "ring")); Kp = K - 1
+        if not a.init_json:
+            prev = np.array(json.load(open(f"results/modal{K - 1}.json"))["theta"])
+            modes = [prev[2 * i:2 * i + 2] for i in range(Kp)]; coup = [prev[2 * Kp + 3 * i:2 * Kp + 3 * i + 3] for i in range(Kp - 1)]
         starts = []
-        for j in range(Kp):
+        if a.init_json:
+            for d in json.load(open(a.init_json)):
+                log(f"start {d['start']}")
+                r = opt(m, dl, np.array(d["theta"]), a.maxiter, None, log); starts.append({"start": d["start"], "ll": -r.fun, "theta": r.x.tolist()})
+        for j in ([] if a.init_json else range(Kp)):
             f = np.log(1.5)
             x0 = np.concatenate(modes[:j] + [modes[j] + [f, -f], modes[j] + [-f, f]] + modes[j + 1:]
                                 + coup[:j] + [np.full(3, np.log(1 / 300.))] + coup[j:])

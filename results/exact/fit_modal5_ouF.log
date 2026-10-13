@@ -1,1 +1,11 @@
 start frozen-split of modal4_ou (grid 9)
+  modal5_ou_g9: ll=-98048.192 nit=24 nfev=1075 450 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start modal7 modes 0-4 + OU (grid 9)
+  modal5_ou_g9: ll=-98059.086 nit=1 nfev=100 22 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start frozen-split, sigma 0.3 tau 150 (grid 9)
+  modal5_ou_g9: ll=-98048.105 nit=49 nfev=2575 937 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+refine on grid 15 from start frozen-split, sigma 0.3 tau 150
+  modal5_ou_g15: ll=-98048.662 nit=2 nfev=150 133 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+  grid 21: ll=-98048.839
+  grid 31: ll=-98048.964
+done modal5_ouF: ll=-98048.662 BIC=196340.9 time 1548 s

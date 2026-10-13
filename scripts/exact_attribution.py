@@ -13,19 +13,20 @@ import numpy as np
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from hsp90memory import amm, io
+import sys; sys.path.insert(0, str(Path(__file__).resolve().parent)); from _fits import best_fit_file  # noqa: E402
 
 EDGES = np.array([0, 0.5, 1, 2, 5, 10, 20, 50, 100, 1e5])   # s
 
 
 def model_Q(name, grid):
-    m = re.match(r"modal(\d+)(_ou(eq|2)?F?)?$", name); K = int(m.group(1))
-    if m.group(2):
-        couple = {None: "OC", "eq": "eq", "2": "both"}[m.group(3)]
-        mo = amm.modal_ou(K, n_grid=grid, couple=couple)
-        th = np.array(json.load(open(f"results/exact/fit_{name}.json"))["theta"]); return mo.Q(th), mo.classes, mo.n_par
-    p = next(q for q in (Path(f"results/exact/fit_{name}_global.json"), Path(f"results/{name}.json"),
-                         Path(f"results/exact/fit_{name}.json")) if q.exists())
-    mo = amm.modal(K); th = np.array(json.load(open(p))["theta"]); return mo.Q(th), mo.classes, mo.n_par
+    m = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou(eq|2)?F?)?$", name); K = int(m.group(2))
+    topo = "chain" if m.group(1) == "modal" else ("ring_noDB" if m.group(3) else "ring")
+    if m.group(4):
+        couple = {None: "OC", "eq": "eq", "2": "both"}[m.group(5)]
+        mo = amm.modal_ou(K, n_grid=grid, couple=couple, topology=topo)
+        th = np.array(json.load(open(best_fit_file(name)))["theta"]); return mo.Q(th), mo.classes, mo.n_par
+    mo = amm.modal(K) if topo == "chain" else amm.ring(K, db=(topo == "ring"))
+    th = np.array(json.load(open(best_fit_file(name)))["theta"]); return mo.Q(th), mo.classes, mo.n_par
 
 
 def main():

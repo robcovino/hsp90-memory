@@ -1,0 +1,3 @@
+start from chain-5 combined optimum (global2)
+  ring4_noDB: ll=-98050.186 nit=55 nfev=1407 26 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+done ring4_noDB: ll=-98050.186 BIC=196303.4 time 26 s

@@ -75,3 +75,16 @@ def test_grid_ou_amm_matches_ou_simulator():
                                                  n_rep=T.R * T.NT, seed=4))
     z = T._z(A, B)
     assert np.abs(z).max() < 4.5 and (np.abs(z) > 2).mean() < 0.1, np.abs(z).max()
+
+
+def test_ring_detailed_balance_and_driven_variant():
+    rng = np.random.default_rng(1)
+    for db in (True, False):
+        r = amm.ring(4, db=db); Q = r.Q(r.init + rng.normal(0, 0.5, r.n_par))
+        F = amm.stationary(Q)[:, None] * Q; np.fill_diagonal(F, 0)
+        asym = np.abs(F - F.T).max() / F.max()
+        assert (asym < 1e-12) if db else (asym > 1e-6)
+    mo = amm.modal_ou(4, n_grid=7, couple="eq", topology="ring")
+    Q = mo.Q(np.r_[amm.ring(4).init, np.log(0.4), np.log(100.0)])
+    F = amm.stationary(Q)[:, None] * Q; np.fill_diagonal(F, 0)
+    assert np.abs(F - F.T).max() < 1e-12 * F.max()

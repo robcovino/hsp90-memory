@@ -13,16 +13,16 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import minimize
 from hsp90memory import amm
+import sys; sys.path.insert(0, str(Path(__file__).resolve().parent)); from _fits import best_fit_file  # noqa: E402
 
 
 def model_and_start(name, grid):
-    m = re.match(r"modal(\d+)(_ou(eq|2)?F?)?$", name); K = int(m.group(1))
-    if m.group(2):
-        couple = {None: "OC", "eq": "eq", "2": "both"}[m.group(3)]
-        return amm.modal_ou(K, n_grid=grid, couple=couple), np.array(json.load(open(f"results/exact/fit_{name}.json"))["theta"])
-    p = next(q for q in (Path(f"results/exact/fit_{name}_global.json"), Path(f"results/{name}.json"),
-                         Path(f"results/exact/fit_{name}.json")) if q.exists())
-    return amm.modal(K), np.array(json.load(open(p))["theta"])
+    m = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou(eq|2)?F?)?$", name); K = int(m.group(2))
+    topo = "chain" if m.group(1) == "modal" else ("ring_noDB" if m.group(3) else "ring")
+    if m.group(4):
+        couple = {None: "OC", "eq": "eq", "2": "both"}[m.group(5)]
+        return amm.modal_ou(K, n_grid=grid, couple=couple, topology=topo), np.array(json.load(open(best_fit_file(name)))["theta"])
+    return (amm.modal(K) if topo == "chain" else amm.ring(K, db=(topo == "ring"))), np.array(json.load(open(best_fit_file(name)))["theta"])
 
 
 def fold(args):

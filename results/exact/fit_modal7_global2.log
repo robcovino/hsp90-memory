@@ -1,0 +1,3 @@
+start modal7_g chain 1 best (ll -98026.34)
+  modal7: ll=-98013.200 nit=68 nfev=2442 63 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start modal7_v3 chain 0 best (ll -98040.81)

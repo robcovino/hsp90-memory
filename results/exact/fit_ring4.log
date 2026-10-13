@@ -1,0 +1,3 @@
+start from chain-5 combined optimum (global2)
+  ring4: ll=-98050.004 nit=84 nfev=1900 33 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+done ring4: ll=-98050.004 BIC=196292.8 time 33 s

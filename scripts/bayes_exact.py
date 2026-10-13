@@ -34,9 +34,10 @@ DL = None
 
 
 def build(name, grid, couple):
-    m = re.match(r"modal(\d+)(_ou)?$", name); K = int(m.group(1))
-    if m.group(2):
-        model = amm.modal_ou(K, n_grid=grid, couple=couple); nb = model.base.n_par
+    m = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou)?$", name); K = int(m.group(2))
+    topo = "chain" if m.group(1) == "modal" else ("ring_noDB" if m.group(3) else "ring")
+    if m.group(4):
+        model = amm.modal_ou(K, n_grid=grid, couple=couple, topology=topo); nb = model.base.n_par
         lo = np.r_[np.full(nb, RATE_BOX[0]), SIGMA_BOX[0], LOGTAU_BOX[0]]
         hi = np.r_[np.full(nb, RATE_BOX[1]), SIGMA_BOX[1], LOGTAU_BOX[1]]
         def to_theta(phi):        # phi: log-rates, sigma, log tau -> model theta: log-rates, log sigma, log tau
@@ -44,7 +45,7 @@ def build(name, grid, couple):
         def to_phi(theta):
             return np.r_[theta[:nb], np.exp(theta[nb]), theta[nb + 1]]
     else:
-        model = amm.modal(K); nb = model.n_par
+        model = amm.modal(K) if topo == "chain" else amm.ring(K, db=(topo == "ring")); nb = model.n_par
         lo, hi = np.full(nb, RATE_BOX[0]), np.full(nb, RATE_BOX[1])
         to_theta = to_phi = lambda x: np.asarray(x, float)
     return model, lo, hi, to_theta, to_phi

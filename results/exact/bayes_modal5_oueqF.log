@@ -1,0 +1,7 @@
+modal5_oueqF: d=24, start results/exact/fit_modal5_oueqF.json, logpost at start -98090.048
+  Hessian done (360 s); smallest curvature 0.0912
+  MCMC done (25677 s); acceptance [0.155, 0.234, 0.094, 0.1]
+  max R-hat 1.659; min ESS 59; max tau 3798
+  bridge log Z per chain [-98126.697 -98129.91  -98130.461 -98126.291]; pooled -98127.142 +- 1.075 (26833 s)
+  grid correction: {'15': {'dlogZ': -0.5343918142783721, 'dll_mean': -0.5434255765625857, 'dll_sd': 0.13485312161181565}, '21': {'dlogZ': -0.7047877598876937, 'dll_mean': -0.7183019474605681, 'dll_sd': 0.1646653325758614}}
+done modal5_oueqF: log Z = -98127.142 +- 1.075; time 27068 s

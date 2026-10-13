@@ -69,6 +69,43 @@ def modal(n_modes, db=True):
     return Model(f"modal{n_modes}" + ("" if db else "_noDB"), classes, build, n_par, np.array(init))
 
 
+def ring(n_modes, db=True):
+    """n_modes gating modes on a cycle (mode m <-> m+1 mod n_modes); states ordered (O_0, C_0, O_1, C_1, ...).
+    Parameters: kOC_m, kCO_m for every mode, then for every edge m -> m+1: a_m (O_m -> O_m+1), b_m (O_m+1 -> O_m),
+    c_m (C_m -> C_m+1); d_m (C_m+1 -> C_m) is fixed by detailed balance on the square (O_m, O_m+1, C_m+1, C_m).
+    With db=True the last b (O_0 -> O_{n-1}) is fixed by detailed balance around the ring of open states
+    (prod a = prod b); the ring of closed states then balances as well. db=False leaves it free (a driven cycle)."""
+    K = 2 * n_modes; classes = [0, 1] * n_modes
+    n_par = 2 * n_modes + 3 * n_modes - (1 if db else 0)
+
+    def build(r):
+        Q = np.zeros((K, K))
+        kOC = r[0:2 * n_modes:2]; kCO = r[1:2 * n_modes:2]
+        sw = list(r[2 * n_modes:])
+        a, b, c = np.zeros(n_modes), np.zeros(n_modes), np.zeros(n_modes)
+        for m in range(n_modes):
+            a[m] = sw.pop(0)
+            b[m] = sw.pop(0) if (m < n_modes - 1 or not db) else np.nan
+            c[m] = sw.pop(0)
+        if db:
+            b[-1] = np.prod(a) / np.prod(b[:-1])
+        for m in range(n_modes):
+            Q[2 * m, 2 * m + 1] = kOC[m]; Q[2 * m + 1, 2 * m] = kCO[m]
+        for m in range(n_modes):
+            n = (m + 1) % n_modes
+            d = kOC[m] * c[m] * kCO[n] * b[m] / (kCO[m] * a[m] * kOC[n])
+            Q[2 * m, 2 * n] = a[m]; Q[2 * n, 2 * m] = b[m]
+            Q[2 * m + 1, 2 * n + 1] = c[m]; Q[2 * n + 1, 2 * m + 1] = d
+        return _finalize(Q)
+
+    init = []
+    for m in range(n_modes):
+        f = m / max(n_modes - 1, 1); init += [np.log(0.06 * (8 ** f)), np.log(0.25 * (4 ** f))]
+    for m in range(n_modes):
+        init += [np.log(1 / 900.)] + ([np.log(1 / 500.)] if (m < n_modes - 1 or not db) else []) + [np.log(1 / 900.)]
+    return Model(f"ring{n_modes}" + ("" if db else "_noDB"), classes, build, n_par, np.array(init))
+
+
 def ou_grid(n_grid=15, z_max=3.5):
     """Unit-variance Ornstein-Uhlenbeck coordinate on a grid, square-root approximation of the Fokker-Planck
     operator for U(z) = z^2/2. Returns (z, R1): z rescaled so that the discrete stationary distribution has unit
@@ -84,7 +121,7 @@ def ou_grid(n_grid=15, z_max=3.5):
     return z, R / (-ev[1])
 
 
-def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC"):
+def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC", topology="chain"):
     """modal(n_modes) with the open->closed rate (couple='OC'), or both rates (couple='both'), modulated by one
     unit-variance OU coordinate z on a grid (the joint chain is a finite AMM; the gauge is fixed by unit variance and
     relaxation time tau_w):  kOC_m(z) = kOC_m exp(sigma_OC z),  kCO_m(z) = kCO_m exp(sigma_CO z).
@@ -95,7 +132,8 @@ def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC"):
     cycle of the joint chain is balanced (detailed balance holds if it holds for modal(n_modes)). Parameters as 'OC'.
     Parameters: the modal(n_modes) log-rates, then log sigma_OC, log tau_w (couple='OC'), or log sigma_OC,
     sigma_CO (signed), log tau_w (couple='both'). States ordered (z_0: O_0, C_0, O_1, ...), (z_1: ...), ..."""
-    base = modal(n_modes); K2 = base.K; nb = base.n_par
+    base = {"chain": lambda: modal(n_modes), "ring": lambda: ring(n_modes),
+            "ring_noDB": lambda: ring(n_modes, db=False)}[topology](); K2 = base.K; nb = base.n_par
     z, R1 = ou_grid(n_grid, z_max)
     classes = list(base.classes) * n_grid
     O = np.arange(0, K2, 2); C = O + 1
@@ -123,7 +161,8 @@ def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC"):
     n_extra = 3 if couple == "both" else 2
     init = np.r_[base.init, [np.log(0.3), 0.0, np.log(100.0)] if couple == "both" else [np.log(0.3), np.log(100.0)]]
     suffix = {"OC": "", "both": "2", "eq": "eq"}[couple]
-    m = Model(f"modal{n_modes}_ou{suffix}_g{n_grid}", classes, None, nb + n_extra, init)
+    pre = "modal" if topology == "chain" else topology.replace("_noDB", "") 
+    m = Model(f"{pre}{n_modes}{'_noDB' if topology == 'ring_noDB' else ''}_ou{suffix}_g{n_grid}", classes, None, nb + n_extra, init)
     m.Q = build_from
     m.base, m.n_grid, m.z, m.couple = base, n_grid, z, couple
     return m

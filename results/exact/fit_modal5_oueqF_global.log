@@ -1,0 +1,13 @@
+start mcmc chain 0 best (ll -98037.90) (grid 9)
+  modal5_oueq_g9: ll=-98034.417 nit=40 nfev=1425 624 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start mcmc chain 1 best (ll -98043.08) (grid 9)
+  modal5_oueq_g9: ll=-98040.597 nit=16 nfev=625 242 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start mcmc chain 2 best (ll -98042.36) (grid 9)
+  modal5_oueq_g9: ll=-98034.247 nit=75 nfev=2450 964 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start mcmc chain 3 best (ll -98037.70) (grid 9)
+  modal5_oueq_g9: ll=-98037.704 nit=1 nfev=125 31 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+refine on grid 15 from start mcmc chain 2 best (ll -98042.36)
+  modal5_oueq_g15: ll=-98034.732 nit=5 nfev=225 196 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+  grid 21: ll=-98034.894
+  grid 31: ll=-98035.010
+done modal5_oueqF_global: ll=-98034.732 BIC=196313.0 time 2063 s

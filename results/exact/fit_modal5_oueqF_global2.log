@@ -1,0 +1,11 @@
+start F global with attached mode from modal7 peak (grid 9)
+  modal5_oueq_g9: ll=-97998.100 nit=54 nfev=1750 1173 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start modal7 peak modes 0-4 + OU (grid 9)
+  modal5_oueq_g9: ll=-97998.086 nit=47 nfev=1575 1064 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start F global, attached mode 1.5 s/0.86 s generic coupling (grid 9)
+  modal5_oueq_g9: ll=-97998.126 nit=45 nfev=1350 654 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+refine on grid 15 from start modal7 peak modes 0-4 + OU
+  modal5_oueq_g15: ll=-97998.640 nit=16 nfev=500 431 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+  grid 21: ll=-97998.837
+  grid 31: ll=-97998.979
+done modal5_oueqF_global2: ll=-97998.640 BIC=196240.9 time 3330 s

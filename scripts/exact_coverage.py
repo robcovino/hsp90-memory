@@ -3,9 +3,11 @@
 Parameter sets are drawn from the posterior of the real data (results/exact/bayes_<tag>_samples.npz); for each, a
 synthetic measurement (4 traces x 216,000 frames) is simulated exactly from the generator (simulators.simulate_amm;
 grid-OU models on --sim-grid points) and the posterior is sampled again with the same priors and likelihood
-(MCMC, one chain, random-walk proposal with the covariance of the real-data posterior in logit space, started at the
-true value plus jitter, first half discarded; grid-OU models on --fit-grid points, which also tests the grid
-approximation). Output: rank of the true value among thinned posterior samples, per parameter, and the empirical
+(MCMC, one chain per data set with the adaptive sampler of bayes_exact.chain (Andrieu-Thoms), proposal initialised
+with the covariance of the real-data posterior in logit space, started at the true value plus jitter, first half
+discarded; grid-OU models on --fit-grid points, which also tests the grid approximation). The first coverage run of
+modal4_oueq (coverage_modal4_oueq.json) used a fixed, non-adapted proposal and 8000 steps: median acceptance 0.10,
+median ESS 32 per data set, too few for reliable ranks of the switching rates; superseded by --out-suffix _v2. Output: rank of the true value among thinned posterior samples, per parameter, and the empirical
 coverage of central credible intervals. Under correct calibration ranks are uniform and coverage is nominal.
 
 Usage: python scripts/exact_coverage.py modal5 --n-sets 100 --steps 8000
@@ -34,16 +36,9 @@ def one(args):
     Q = Ts.model.Q(Ts.to_theta(Ts.phi(u_true)))
     X = sim.simulate_amm(Q, Ts.model.classes, 216000, n_rep=4, seed=seed)
     be.DL = [io.dwells(x) for x in X]
-    T = be.Target(name, fit_grid, couple); d = T.d
-    L = np.linalg.cholesky(2.38 ** 2 / d * cov + 1e-10 * np.eye(d))
-    x = u_true + L @ rng.standard_normal(d) * 0.3; lp = T.logpost(x)[0]
-    burn = steps // 2; S = []; acc = 0; t0 = time.time()
-    for t in range(steps):
-        y = x + L @ rng.standard_normal(d); ly = T.logpost(y)[0]
-        if np.log(rng.random()) < ly - lp:
-            x, lp = y, ly; acc += t >= burn
-        if t >= burn: S.append(x.copy())
-    S = np.array(S)
+    T = be.Target(name, fit_grid, couple); d = T.d; t0 = time.time()
+    r = be.chain((name, fit_grid, couple, u_true, cov, steps, seed))     # adaptive MCMC, second half kept
+    S = r["X"]; acc = r["acc"] * (steps - steps // 2); burn = steps // 2
     import emcee
     tau = np.array([emcee.autocorr.integrated_time(S[:, j], quiet=True)[0] for j in range(d)])
     thin = max(1, int(np.ceil(np.median(tau)))); St = S[::thin]
@@ -59,10 +54,14 @@ def main():
     ap.add_argument("--fit-grid", type=int, default=7); ap.add_argument("--sim-grid", type=int, default=15)
     ap.add_argument("--workers", type=int, default=4); ap.add_argument("--seed", type=int, default=11)
     ap.add_argument("--suffix", default="", help="posterior run suffix (bayes_<tag><suffix>_samples.npz)")
+    ap.add_argument("--out-suffix", default="", help="appended to the output names (versioning)")
+    ap.add_argument("--min-steps", type=int, default=16000,
+                    help="floor on --steps (added 2026-10-13: 8000 steps gave too few effective samples)")
     a = ap.parse_args()
+    a.steps = max(a.steps, a.min_steps)
     is_ou = "_ou" in a.name
     tag = a.name + ({"OC": "", "both": "2", "eq": "eq"}[a.couple] if is_ou else "") + a.suffix
-    out = Path(f"results/exact/coverage_{tag}.json")
+    out = Path(f"results/exact/coverage_{tag}{a.out_suffix}.json")
     if out.exists():
         sys.exit(f"{out} exists")
     z = np.load(f"results/exact/bayes_{tag}_samples.npz"); U = z["u"].reshape(-1, z["u"].shape[-1])
@@ -83,7 +82,7 @@ def main():
            "n_dwells": [r["n_dwells"] for r in res], "time_s": time.time() - t0,
            "coverage_mean_over_params": np.mean([v for v in cov_emp.values()], 0).tolist()}
     json.dump(rep, open(out, "w"), indent=1)
-    np.savez(f"results/exact/coverage_{tag}.npz", ranks=R, picks=picks, names=np.array(names))
+    np.savez(f"results/exact/coverage_{tag}{a.out_suffix}.npz", ranks=R, picks=picks, names=np.array(names))
     nc = 5; nr = int(np.ceil(d / nc)) + 1
     fig, axs = plt.subplots(nr, nc, figsize=(16, 2.4 * nr))
     for j, ax in enumerate(axs.ravel()):
@@ -97,7 +96,7 @@ def main():
         else:
             ax.axis("off")
     fig.suptitle(f"{tag}: ranks of true values, {a.n_sets} synthetic measurements from the data posterior", fontsize=10)
-    fig.tight_layout(); fig.savefig(f"figures/exact_coverage_{tag}.png", dpi=100)
+    fig.tight_layout(); fig.savefig(f"figures/exact_coverage_{tag}{a.out_suffix}.png", dpi=100)
     print(json.dumps({k: rep[k] for k in ("coverage_mean_over_params", "time_s")}), flush=True)
     print({n: [round(x, 2) for x in v] for n, v in cov_emp.items()})
 

@@ -1,2 +1,7 @@
 ring4_oueq: d=21, start results/exact/fit_ring4_oueq.json, logpost at start -98003.631
   Hessian done (152 s); smallest curvature 0.265
+  MCMC done (17524 s); acceptance [0.24, 0.225, 0.192, 0.225]
+  max R-hat 1.075; min ESS 115; max tau 2905
+  bridge log Z per chain [-98051.567 -98051.37  -98051.667 -98051.091]; pooled -98051.399 +- 0.127 (18209 s)
+  grid correction: {'15': {'dlogZ': -0.5656776043816771, 'dll_mean': -0.5746761015368975, 'dll_sd': 0.13445282733729977}, '21': {'dlogZ': -0.7443865354797481, 'dll_mean': -0.7579489380458108, 'dll_sd': 0.1650771118176243}}
+done ring4_oueq: log Z = -98051.399 +- 0.127; time 18345 s

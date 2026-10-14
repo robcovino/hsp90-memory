@@ -1,0 +1,6 @@
+ringL2: d=29, start results/exact/fit_ringL2.json, logpost at start -98022.194
+  Hessian done (46 s); smallest curvature -0.12
+  MCMC done (3105 s); acceptance [0.239, 0.256, 0.248, 0.23]
+  max R-hat 1.099; min ESS 151; max tau 4003
+  bridge log Z per chain [-98085.021 -98084.537 -98084.942 -98085.053]; pooled -98084.865 +- 0.119 (3245 s)
+done ringL2: log Z = -98084.865 +- 0.119; time 3246 s

@@ -17,6 +17,10 @@ import sys; sys.path.insert(0, str(Path(__file__).resolve().parent)); from _fits
 
 
 def model_and_start(name, grid):
+    gm = re.match(r"([A-Za-z]+\d)_ou(eq|2)?$", name)
+    if gm and gm.group(1) in amm.NAMED_GRAPHS:
+        mo = amm.modal_ou(0, n_grid=grid, couple={None: "OC", "eq": "eq", "2": "both"}[gm.group(2)], topology=gm.group(1))
+        return mo, np.array(json.load(open(best_fit_file(name)))["theta"])
     if name in amm.NAMED_GRAPHS:
         return amm.named_graph(name), np.array(json.load(open(best_fit_file(name)))["theta"])
     m = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou(eq|2)?F?)?$", name); K = int(m.group(2))

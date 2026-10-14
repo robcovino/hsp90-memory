@@ -155,7 +155,9 @@ def graph(n_modes, edges, db=True, name=None):
 
 RING4 = [(0, 1), (1, 2), (2, 3), (3, 0)]
 NAMED_GRAPHS = {"ringL1": (5, RING4 + [(3, 4)]), "ringL2": (6, RING4 + [(3, 4), (4, 5)]),
-                "ringS2": (6, RING4 + [(3, 4), (3, 5)])}
+                "ringS2": (6, RING4 + [(3, 4), (3, 5)]),
+                "ringF1": (5, RING4 + [(0, 4)]),       # ring + a mode attached to the frozen mode
+                "full5": (5, RING4 + [(0, 4), (0, 2), (1, 3), (1, 4), (2, 4), (3, 4)])}   # all 10 pairs (ceiling)
 
 
 def named_graph(name, db=True):
@@ -190,8 +192,12 @@ def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC", topology="chain"):
     cycle of the joint chain is balanced (detailed balance holds if it holds for modal(n_modes)). Parameters as 'OC'.
     Parameters: the modal(n_modes) log-rates, then log sigma_OC, log tau_w (couple='OC'), or log sigma_OC,
     sigma_CO (signed), log tau_w (couple='both'). States ordered (z_0: O_0, C_0, O_1, ...), (z_1: ...), ..."""
-    base = {"chain": lambda: modal(n_modes), "ring": lambda: ring(n_modes),
-            "ring_noDB": lambda: ring(n_modes, db=False)}[topology](); K2 = base.K; nb = base.n_par
+    if topology in NAMED_GRAPHS:
+        base = named_graph(topology); n_modes = NAMED_GRAPHS[topology][0]
+    else:
+        base = {"chain": lambda: modal(n_modes), "ring": lambda: ring(n_modes),
+                "ring_noDB": lambda: ring(n_modes, db=False)}[topology]()
+    K2 = base.K; nb = base.n_par
     z, R1 = ou_grid(n_grid, z_max)
     classes = list(base.classes) * n_grid
     O = np.arange(0, K2, 2); C = O + 1
@@ -219,8 +225,12 @@ def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC", topology="chain"):
     n_extra = 3 if couple == "both" else 2
     init = np.r_[base.init, [np.log(0.3), 0.0, np.log(100.0)] if couple == "both" else [np.log(0.3), np.log(100.0)]]
     suffix = {"OC": "", "both": "2", "eq": "eq"}[couple]
-    pre = "modal" if topology == "chain" else topology.replace("_noDB", "") 
-    m = Model(f"{pre}{n_modes}{'_noDB' if topology == 'ring_noDB' else ''}_ou{suffix}_g{n_grid}", classes, None, nb + n_extra, init)
+    if topology in NAMED_GRAPHS:
+        mname = f"{topology}_ou{suffix}_g{n_grid}"
+    else:
+        pre = "modal" if topology == "chain" else topology.replace("_noDB", "")
+        mname = f"{pre}{n_modes}{'_noDB' if topology == 'ring_noDB' else ''}_ou{suffix}_g{n_grid}"
+    m = Model(mname, classes, None, nb + n_extra, init)
     m.Q = build_from
     m.base, m.n_grid, m.z, m.couple = base, n_grid, z, couple
     return m

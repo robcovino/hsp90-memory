@@ -1,0 +1,9 @@
+start X slow symmetric (old peak)
+  ringF1: ll=-98023.080 nit=58 nfev=1675 29 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start X fast-like
+  ringF1: ll=-98033.684 nit=57 nfev=1975 28 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start X second frozen sub-state
+  ringF1: ll=-97996.319 nit=274 nfev=7875 111 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start X slow symmetric, O-coupled
+  ringF1: ll=-98022.206 nit=63 nfev=1850 25 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+done ringF1: ll=-97996.319 BIC=196236.2 time 193 s

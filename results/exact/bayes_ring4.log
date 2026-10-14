@@ -1,1 +1,6 @@
 ring4: d=19, start results/exact/fit_ring4.json, logpost at start -98079.217
+  Hessian done (14 s); smallest curvature 0.42
+  MCMC done (2170 s); acceptance [0.254, 0.238, 0.242, 0.209]
+  max R-hat 1.288; min ESS 113; max tau 4210
+  bridge log Z per chain [-98125.669 -98125.925 -98125.15  -98125.833]; pooled -98125.596 +- 0.173 (2283 s)
+done ring4: log Z = -98125.596 +- 0.173; time 2284 s

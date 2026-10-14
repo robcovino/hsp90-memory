@@ -1,0 +1,66 @@
+ringF1_oueq start: results/exact/fit_ringF1_oueq_global.json
+=== 2026-10-14T05:25:19Z START bayes ringF1 (discrete)
+ringF1: d=24, start results/exact/fit_ringF1.json, logpost at start -98035.044
+  Hessian done (21 s); smallest curvature 0.266
+  MCMC done (1738 s); acceptance [0.206, 0.182, 0.213, 0.264]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [942.76929849]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1282.00370237]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1648.74479312]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [944.19148331]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [871.40988824]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [885.50911414]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3940.05378766]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1267.98586432]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [4559.05954977]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1178.96451236]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1160.09077901]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2066.30094538]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [964.90116014]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [4067.88775553]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3286.94575778]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3931.63583779]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [928.38339868]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [828.93684495]
+  max R-hat 1.467; min ESS 139; max tau 4559
+  bridge log Z per chain [-98080.108 -98080.028 -98080.339 -98080.876]; pooled -98080.288 +- 0.191 (1825 s)
+done ringF1: log Z = -98080.288 +- 0.191; time 1826 s
+=== 2026-10-14T05:55:47Z OK
+=== 2026-10-14T05:55:47Z START bayes ringF1_oueq
+ringF1_oueq: d=26, start results/exact/fit_ringF1_oueq_global.json, logpost at start -97961.017
+  Hessian done (400 s); smallest curvature 0.153

@@ -19,6 +19,10 @@ EDGES = np.array([0, 0.5, 1, 2, 5, 10, 20, 50, 100, 1e5])   # s
 
 
 def model_Q(name, grid):
+    gm = re.match(r"([A-Za-z]+\d)_ou(eq|2)?$", name)
+    if gm and gm.group(1) in amm.NAMED_GRAPHS:
+        mo = amm.modal_ou(0, n_grid=grid, couple={None: "OC", "eq": "eq", "2": "both"}[gm.group(2)], topology=gm.group(1))
+        th = np.array(json.load(open(best_fit_file(name)))["theta"]); return mo.Q(th), mo.classes, mo.n_par
     if name in amm.NAMED_GRAPHS:
         mo = amm.named_graph(name); th = np.array(json.load(open(best_fit_file(name)))["theta"]); return mo.Q(th), mo.classes, mo.n_par
     m = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou(eq|2)?F?)?$", name); K = int(m.group(2))

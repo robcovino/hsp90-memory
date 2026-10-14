@@ -1,0 +1,13 @@
+start ringF1_oueq optimum (grid 9)
+  ringF1_oueq_g9: ll=-97918.381 nit=16 nfev=486 142 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start optimum + N(0,0.3) #0 (grid 9)
+  ringF1_oueq_g9: ll=-97918.319 nit=63 nfev=2025 558 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start optimum + N(0,0.3) #1 (grid 9)
+  ringF1_oueq_g9: ll=-97918.360 nit=81 nfev=2619 791 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start optimum + N(0,0.3) #2 (grid 9)
+  ringF1_oueq_g9: ll=-97918.333 nit=54 nfev=1971 592 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+refine on grid 15 from start optimum + N(0,0.3) #0
+  ringF1_oueq_g15: ll=-97918.856 nit=12 nfev=459 347 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+  grid 21: ll=-97919.033
+  grid 31: ll=-97919.158
+done ringF1_oueq_global: ll=-97918.856 BIC=196101.6 time 2434 s

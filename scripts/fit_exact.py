@@ -60,8 +60,12 @@ def main():
     def log(msg):
         print(msg, flush=True); logf.write(msg + "\n"); logf.flush()
     dl = data(); n_dw = sum(len(x[0]) for x in dl); t0 = time.time()
-    mm = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou)?$", a.name); K = int(mm.group(2)); is_ou = bool(mm.group(4))
-    topo = "chain" if mm.group(1) == "modal" else ("ring_noDB" if mm.group(3) else "ring")
+    gm = re.match(r"([A-Za-z]+\d)(_ou)?$", a.name)
+    if gm and gm.group(1) in amm.NAMED_GRAPHS:
+        topo = gm.group(1); K = amm.NAMED_GRAPHS[topo][0]; is_ou = bool(gm.group(2))
+    else:
+        mm = re.match(r"(modal|ring)(\d+)(_noDB)?(_ou)?$", a.name); K = int(mm.group(2)); is_ou = bool(mm.group(4))
+        topo = "chain" if mm.group(1) == "modal" else ("ring_noDB" if mm.group(3) else "ring")
     res = {"name": tag, "n_dwells": n_dw, "args": vars(a)}
     if is_ou:
         th0 = np.array(json.load(open(f"results/modal{K}.json"))["theta"]) if topo == "chain" else None
@@ -100,7 +104,8 @@ def main():
                     "sigma_OC": float(np.exp(th[nb])), "tau_w": float(np.exp(th[-1])),
                     "sigma_CO": float(th[nb + 1]) if a.couple == "both" else 0.0})
     else:
-        m = amm.modal(K) if topo == "chain" else amm.ring(K, db=(topo == "ring")); Kp = K - 1
+        m = (amm.named_graph(topo) if topo in amm.NAMED_GRAPHS else
+             amm.modal(K) if topo == "chain" else amm.ring(K, db=(topo == "ring"))); Kp = K - 1
         if not a.init_json:
             prev = np.array(json.load(open(f"results/modal{K - 1}.json"))["theta"])
             modes = [prev[2 * i:2 * i + 2] for i in range(Kp)]; coup = [prev[2 * Kp + 3 * i:2 * Kp + 3 * i + 3] for i in range(Kp - 1)]

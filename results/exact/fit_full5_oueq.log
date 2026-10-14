@@ -1,0 +1,8 @@
+start ringF1_oueq optimum embedded, extra edges 1e-5 (grid 9)
+  full5_oueq_g9: ll=-97909.222 nit=132 nfev=5587 1637 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start embedded, extra edges 1e-3 (grid 9)
+  full5_oueq_g9: ll=-97908.694 nit=113 nfev=5106 1507 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+refine on grid 15 from start embedded, extra edges 1e-3
+  full5_oueq_g15: ll=-97909.150 nit=16 nfev=703 499 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+  grid 21: ll=-97909.310
+done full5_oueq: ll=-97909.150 BIC=196183.7 time 3644 s

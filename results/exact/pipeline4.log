@@ -1,2 +1,256 @@
 === 2026-10-13T22:40:59Z START bayes ring4
 ring4: d=19, start results/exact/fit_ring4.json, logpost at start -98079.217
+  Hessian done (14 s); smallest curvature 0.42
+  MCMC done (2170 s); acceptance [0.254, 0.238, 0.242, 0.209]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2483.17467358]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2511.88501177]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2477.65186724]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2019.43450431]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [4210.1017407]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3814.52659064]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [843.8271403]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2762.55837222]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2731.90761982]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2428.50724244]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1337.19127935]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1277.24051453]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [814.42765364]
+  max R-hat 1.288; min ESS 113; max tau 4210
+  bridge log Z per chain [-98125.669 -98125.925 -98125.15  -98125.833]; pooled -98125.596 +- 0.173 (2283 s)
+done ring4: log Z = -98125.596 +- 0.173; time 2284 s
+=== 2026-10-13T23:19:05Z OK
+=== 2026-10-13T23:19:05Z START bayes ringS2
+ringS2: d=29, start results/exact/fit_ringS2.json, logpost at start -98021.306
+  Hessian done (38 s); smallest curvature 0.211
+  MCMC done (3087 s); acceptance [0.239, 0.232, 0.22, 0.207]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2834.73798173]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3136.30421759]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2078.53145189]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2004.36014272]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [830.37260077]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1349.78180681]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1983.86496512]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1979.66528534]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1934.24292177]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [832.7664592]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1266.51918627]
+  max R-hat 1.251; min ESS 196; max tau 3136
+  bridge log Z per chain [-98084.479 -98084.28  -98084.349 -98084.089]; pooled -98084.289 +- 0.081 (3249 s)
+done ringS2: log Z = -98084.289 +- 0.081; time 3251 s
+=== 2026-10-14T00:13:17Z OK
+=== 2026-10-14T00:13:17Z START bayes ringL2
+ringL2: d=29, start results/exact/fit_ringL2.json, logpost at start -98022.194
+  Hessian done (46 s); smallest curvature -0.12
+  MCMC done (3105 s); acceptance [0.239, 0.256, 0.248, 0.23]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1597.59866178]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1487.77908586]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [928.83998243]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [899.49597695]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [4002.7648225]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3413.66233141]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2405.95118334]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2371.52504745]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1309.59345212]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1031.64519602]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1027.29143118]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [840.42293877]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1494.55412503]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2800.40624058]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2995.18353938]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2326.94755623]
+  max R-hat 1.099; min ESS 151; max tau 4003
+  bridge log Z per chain [-98085.021 -98084.537 -98084.942 -98085.053]; pooled -98084.865 +- 0.119 (3245 s)
+done ringL2: log Z = -98084.865 +- 0.119; time 3246 s
+=== 2026-10-14T01:07:25Z OK
+=== 2026-10-14T01:07:25Z START bayes ringL1
+ringL1: d=24, start results/exact/fit_ringL1.json, logpost at start -98045.069
+  Hessian done (21 s); smallest curvature 0.165
+  MCMC done (2671 s); acceptance [0.212, 0.262, 0.198, 0.178]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2190.35393945]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2253.98390761]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1080.16000691]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [965.3945755]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [840.49289104]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3161.04815496]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3252.94888582]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3332.95061348]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1499.39995261]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1505.19566142]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1026.16909935]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3975.07982862]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [3936.22442651]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [2272.17402712]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [908.1935223]
+The chain is shorter than 50 times the integrated autocorrelation time for 1 parameter(s). Use this estimate with caution and run a longer chain!
+N/50 = 800;
+tau: [1047.36240663]
+  max R-hat 1.178; min ESS 67; max tau 3975
+  bridge log Z per chain [-98100.915 -98100.46  -98100.677 -98100.407]; pooled -98100.595 +- 0.116 (2799 s)
+done ringL1: log Z = -98100.595 +- 0.116; time 2800 s
+=== 2026-10-14T01:54:07Z OK
+=== 2026-10-14T02:37:07Z START ppc ring
+ring4+OUeq done 100 s
+ring4 done 198 s
+ringS2 done 291 s
+ringL2 done 384 s
+chain5+OUeq done 494 s
+modal7 done 602 s
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+/home/ubuntu/hsp90-memory/.venv/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:1593: RuntimeWarning: All-NaN slice encountered
+  return fnb._ureduce(a,
+ring4+OUeq {'n_stats': 113, 'outside_95': 13, 'n_abs_z_gt_3': 2, 'sum_z2': 122.62025336782048}
+  rms z by group: {'acf': 1.53, 'cc': 1.0, 'ck_closed': 1.26, 'ck_open': 1.32, 'closed_frac': 0.07, 'fano': 0.36, 'logqC': 0.52, 'logqO': 0.43, 'oc': 0.05, 'oo': 0.98, 'rate1min': 0.97, 'rate2min': 0.53, 'sv2d': 0.86}
+ring4 {'n_stats': 113, 'outside_95': 15, 'n_abs_z_gt_3': 9, 'sum_z2': 214.55961554507965}
+  rms z by group: {'acf': 1.85, 'cc': 0.95, 'ck_closed': 1.89, 'ck_open': 1.92, 'closed_frac': 0.08, 'fano': 1.15, 'logqC': 0.52, 'logqO': 0.4, 'oc': 0.26, 'oo': 0.69, 'rate1min': 1.46, 'rate2min': 0.86, 'sv2d': 0.87}
+ringS2 {'n_stats': 113, 'outside_95': 11, 'n_abs_z_gt_3': 2, 'sum_z2': 133.67146454329796}
+  rms z by group: {'acf': 1.55, 'cc': 1.11, 'ck_closed': 1.3, 'ck_open': 1.61, 'closed_frac': 0.19, 'fano': 0.63, 'logqC': 0.51, 'logqO': 0.35, 'oc': 0.24, 'oo': 0.7, 'rate1min': 0.78, 'rate2min': 0.42, 'sv2d': 0.86}
+ringL2 {'n_stats': 113, 'outside_95': 14, 'n_abs_z_gt_3': 2, 'sum_z2': 136.29593018776245}
+  rms z by group: {'acf': 1.45, 'cc': 1.19, 'ck_closed': 1.31, 'ck_open': 1.59, 'closed_frac': 0.16, 'fano': 0.61, 'logqC': 0.54, 'logqO': 0.4, 'oc': 0.33, 'oo': 0.74, 'rate1min': 0.86, 'rate2min': 0.55, 'sv2d': 0.88}
+chain5+OUeq {'n_stats': 113, 'outside_95': 5, 'n_abs_z_gt_3': 0, 'sum_z2': 68.28774386657722}
+  rms z by group: {'acf': 0.7, 'cc': 1.09, 'ck_closed': 0.89, 'ck_open': 0.53, 'closed_frac': 0.12, 'fano': 0.42, 'logqC': 0.42, 'logqO': 0.41, 'oc': 0.25, 'oo': 0.95, 'rate1min': 1.01, 'rate2min': 0.62, 'sv2d': 0.85}
+modal7 {'n_stats': 113, 'outside_95': 10, 'n_abs_z_gt_3': 1, 'sum_z2': 121.88203569983364}
+  rms z by group: {'acf': 1.24, 'cc': 1.15, 'ck_closed': 1.38, 'ck_open': 1.36, 'closed_frac': 0.02, 'fano': 0.86, 'logqC': 0.43, 'logqO': 0.41, 'oc': 0.3, 'oo': 0.78, 'rate1min': 0.89, 'rate2min': 0.47, 'sv2d': 0.93}
+total 602 s
+=== 2026-10-14T02:47:14Z OK
+=== 2026-10-14T02:47:14Z START cv v5
+modal5 -98146.64 delta 0.0 [0. 0. 0. 0.]
+modal7 -98087.85 delta 58.78 [17.47 13.79  4.19 23.34]
+modal4_oueq -98100.29 delta 46.35 [-4.19 10.15 12.36 28.02]
+modal5_oueqF -98052.55 delta 94.09 [15.12 23.25 19.72 36.  ]
+ring4 -98097.32 delta 49.32 [30.81 16.01 -3.22  5.71]
+ringL1 -98064.4 delta 82.23 [28.16 26.9  15.31 11.86]
+ringL2 -98037.94 delta 108.69 [24.39 30.29 20.4  33.62]
+ringS2 -98042.01 delta 104.62 [25.74 30.57 19.97 28.34]
+ring4_oueq -98017.1 delta 129.54 [24.79 36.07 27.47 41.21]
+ring4_noDB_oueq -98022.85 delta 123.79 [22.34 33.11 27.37 40.96]
+=== 2026-10-14T03:03:02Z OK
+=== 2026-10-14T03:03:02Z START attribution v5
+ring4 ll -98050.00354354538
+ringS2 ll -97976.28055199399
+ring4_oueq ll -97971.15453364074
+modal5_oueqF ll -97998.64034986292
+ringS2 vs ring4 {"n_par_diff": 10, "total": 73.72299155140807, "per_trace": [3.646836899074651, 16.170614736895143, 23.45675221823506, 30.44878769720322], "by_state": {"open": 70.23708092529495, "closed": 3.485910626113138}}
+ring4_oueq vs ring4 {"n_par_diff": 2, "total": 78.84900990463946, "per_trace": [-2.3064795472776978, 19.57475286069021, 26.5554040246808, 35.02533256654614], "by_state": {"open": 78.14495478177528, "closed": 0.7040551228641676}}
+modal5_oueqF vs ring4 {"n_par_diff": 5, "total": 51.36319368246393, "per_trace": [-10.503275551710164, 7.508209118757474, 22.138791562609317, 32.21946855280731], "by_state": {"open": 57.81942608227529, "closed": -6.456232399811359}}
+=== 2026-10-14T03:03:07Z OK
+=== 2026-10-14T03:03:07Z START coverage ring4_oueq
+=== 2026-10-14T03:08:57Z stopped by hand: coverage ring4_oueq (7 min in) — final model may change (CK plateau test with ringF1); thin samples pending

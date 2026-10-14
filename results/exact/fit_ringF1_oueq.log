@@ -1,0 +1,13 @@
+start X slow symmetric (old peak) (grid 9)
+  ringF1_oueq_g9: ll=-97945.229 nit=61 nfev=2133 481 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start X fast-like (grid 9)
+  ringF1_oueq_g9: ll=-97966.845 nit=84 nfev=2808 646 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start X second frozen sub-state (grid 9)
+  ringF1_oueq_g9: ll=-97918.391 nit=191 nfev=6129 1572 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+start X slow symmetric, O-coupled (grid 9)
+  ringF1_oueq_g9: ll=-97971.626 nit=1 nfev=81 23 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+refine on grid 15 from start X second frozen sub-state
+  ringF1_oueq_g15: ll=-97918.933 nit=16 nfev=513 365 s (CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH)
+  grid 21: ll=-97919.109
+  grid 31: ll=-97919.235
+done ringF1_oueq: ll=-97918.933 BIC=196101.7 time 3093 s

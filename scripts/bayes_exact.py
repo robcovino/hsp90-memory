@@ -34,6 +34,13 @@ DL = None
 
 
 def build(name, grid, couple):
+    gm = re.match(r"([A-Za-z]+\d)_ou$", name)
+    if gm and gm.group(1) in amm.NAMED_GRAPHS:
+        model = amm.modal_ou(0, n_grid=grid, couple=couple, topology=gm.group(1)); nb = model.base.n_par
+        lo = np.r_[np.full(nb, RATE_BOX[0]), SIGMA_BOX[0], LOGTAU_BOX[0]]
+        hi = np.r_[np.full(nb, RATE_BOX[1]), SIGMA_BOX[1], LOGTAU_BOX[1]]
+        return (model, lo, hi, lambda phi: np.r_[phi[:nb], np.log(max(phi[nb], 1e-300)), phi[nb + 1]],
+                lambda theta: np.r_[theta[:nb], np.exp(theta[nb]), theta[nb + 1]])
     if name in amm.NAMED_GRAPHS:
         model = amm.named_graph(name); nb = model.n_par
         ident = lambda x: np.asarray(x, float)

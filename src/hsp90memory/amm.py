@@ -181,7 +181,41 @@ def ou_grid(n_grid=15, z_max=3.5):
     return z, R / (-ev[1])
 
 
-def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC", topology="chain"):
+def split_mode(base, mode, k=2, driven=False):
+    """Replace gating mode `mode` of `base` (states O_m = 2m, C_m = 2m+1) by k identical sub-states (same kOC, kCO),
+    appended as new modes M, M+1, ... Extra parameter: log h (hopping rate between successive sub-states).
+    driven=False (equilibrium): every connection to other modes stays on the first copy; copies hop symmetrically
+      (rate h both ways, in O and in C), so detailed balance is kept. The mode lifetime becomes a mixture of
+      exponentials with a heavier tail (copies act as traps); it cannot become more regular in equilibrium.
+    driven=True: the mode is entered at the first copy and left from the last; copies are traversed forwards only
+      (rate h, in O and in C). The lifetime becomes Erlang-like (more regular). Breaks detailed balance."""
+    M = base.K // 2; nb = base.n_par; K = 2 * (M + k - 1)
+    copies = [mode] + [M + j for j in range(k - 1)]
+    classes = list(base.classes) + [0, 1] * (k - 1)
+
+    def build(theta):
+        Q0 = base.Q(theta[:nb]).copy(); np.fill_diagonal(Q0, 0); h = np.exp(theta[nb])
+        Q = np.zeros((K, K)); Q[:base.K, :base.K] = Q0
+        for c in copies[1:]:
+            Q[2 * c, 2 * c + 1] = Q0[2 * mode, 2 * mode + 1]; Q[2 * c + 1, 2 * c] = Q0[2 * mode + 1, 2 * mode]
+        if driven:                                    # move exits to the last copy
+            last = copies[-1]
+            for n in range(M):
+                if n == mode: continue
+                for x in (0, 1):
+                    Q[2 * last + x, 2 * n + x] = Q0[2 * mode + x, 2 * n + x]; Q[2 * mode + x, 2 * n + x] = 0.0
+        for a_, b_ in zip(copies[:-1], copies[1:]):
+            for x in (0, 1):
+                Q[2 * a_ + x, 2 * b_ + x] = h
+                if not driven: Q[2 * b_ + x, 2 * a_ + x] = h
+        return _finalize(Q)
+
+    m = Model(f"{base.name}_split{mode}x{k}{'drv' if driven else 'eq'}", classes, None, nb + 1, np.r_[base.init, np.log(1 / 300.)])
+    m.Q = build; m.base_model, m.split = base, (mode, k, driven)
+    return m
+
+
+def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC", topology="chain", base=None):
     """modal(n_modes) with the open->closed rate (couple='OC'), or both rates (couple='both'), modulated by one
     unit-variance OU coordinate z on a grid (the joint chain is a finite AMM; the gauge is fixed by unit variance and
     relaxation time tau_w):  kOC_m(z) = kOC_m exp(sigma_OC z),  kCO_m(z) = kCO_m exp(sigma_CO z).
@@ -192,7 +226,9 @@ def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC", topology="chain"):
     cycle of the joint chain is balanced (detailed balance holds if it holds for modal(n_modes)). Parameters as 'OC'.
     Parameters: the modal(n_modes) log-rates, then log sigma_OC, log tau_w (couple='OC'), or log sigma_OC,
     sigma_CO (signed), log tau_w (couple='both'). States ordered (z_0: O_0, C_0, O_1, ...), (z_1: ...), ..."""
-    if topology in NAMED_GRAPHS:
+    if base is not None:
+        topology = "custom"; n_modes = base.K // 2
+    elif topology in NAMED_GRAPHS:
         base = named_graph(topology); n_modes = NAMED_GRAPHS[topology][0]
     else:
         base = {"chain": lambda: modal(n_modes), "ring": lambda: ring(n_modes),
@@ -225,7 +261,9 @@ def modal_ou(n_modes, n_grid=15, z_max=3.5, couple="OC", topology="chain"):
     n_extra = 3 if couple == "both" else 2
     init = np.r_[base.init, [np.log(0.3), 0.0, np.log(100.0)] if couple == "both" else [np.log(0.3), np.log(100.0)]]
     suffix = {"OC": "", "both": "2", "eq": "eq"}[couple]
-    if topology in NAMED_GRAPHS:
+    if topology == "custom":
+        mname = f"{base.name}_ou{suffix}_g{n_grid}"
+    elif topology in NAMED_GRAPHS:
         mname = f"{topology}_ou{suffix}_g{n_grid}"
     else:
         pre = "modal" if topology == "chain" else topology.replace("_noDB", "")

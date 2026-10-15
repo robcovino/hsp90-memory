@@ -1,0 +1,32 @@
+ringF1_oueq_split1x2eq g9 start h=1/300s: ll -97917.010 nit 49 (1468 s)
+ringF1_oueq_split1x2eq g9 start h=1/50s: ll -97917.011 nit 46 (1271 s)
+ringF1_oueq_split1x2drv g9 start h=1/100s: ll -97918.304 nit 110 (3221 s)
+ringF1_oueq_split1x2drv g9 start h=1/20s: ll -97918.334 nit 79 (2395 s)
+ringF1_oueq_split2x2eq g9 start h=1/300s: ll -97918.306 nit 64 (2116 s)
+ringF1_oueq_split2x2eq g9 start h=1/50s: ll -97918.733 nit 38 (1044 s)
+ringF1_oueq_split2x2drv g9 start h=1/100s: ll -97914.353 nit 36 (1008 s)
+ringF1_oueq_split2x2drv g9 start h=1/20s: ll -97914.316 nit 57 (1442 s)
+ringF1_oueq_split3x2eq g9 start h=1/300s: ll -97918.214 nit 64 (1534 s)
+ringF1_oueq_split3x2eq g9 start h=1/50s: ll -97918.215 nit 72 (1602 s)
+ringF1_oueq_split3x2drv g9 start h=1/100s: ll -97908.364 nit 44 (1035 s)
+ringF1_oueq_split3x2drv g9 start h=1/20s: ll -97908.356 nit 56 (1223 s)
+ringF1_oueq_split4x2eq g9 start h=1/300s: ll -97918.294 nit 104 (1623 s)
+ringF1_oueq_split4x2eq g9 start h=1/50s: ll -97918.438 nit 55 (879 s)
+ringF1_oueq_split4x2drv g9 start h=1/100s: ll -97914.819 nit 63 (1138 s)
+ringF1_oueq_split4x2drv g9 start h=1/20s: ll -97914.837 nit 89 (1179 s)
+done ringF1_oueq_split1x2eq: ll -97917.545 (grid 15), h 1/48 s, sigma 0.213, tau 269 s
+done ringF1_oueq_split1x2drv: ll -97918.852 (grid 15), h 1/1 s, sigma 0.215, tau 274 s
+done ringF1_oueq_split2x2eq: ll -97918.849 (grid 15), h 1/9 s, sigma 0.214, tau 268 s
+done ringF1_oueq_split2x2drv: ll -97914.887 (grid 15), h 1/150 s, sigma 0.215, tau 270 s
+done ringF1_oueq_split3x2eq: ll -97918.753 (grid 15), h 1/6 s, sigma 0.215, tau 269 s
+done ringF1_oueq_split3x2drv: ll -97908.885 (grid 15), h 1/191 s, sigma 0.213, tau 273 s
+done ringF1_oueq_split4x2eq: ll -97918.833 (grid 15), h 1/13 s, sigma 0.214, tau 270 s
+done ringF1_oueq_split4x2drv: ll -97915.352 (grid 15), h 1/126 s, sigma 0.215, tau 265 s
+total 7532 s
+ringF1_split3x2drv g9 start h=1/100s: ll -97986.477 nit 41 (34 s)
+ringF1_split3x2drv g9 start h=1/20s: ll -97986.462 nit 66 (48 s)
+ringF1_split3x2eq g9 start h=1/300s: ll -97996.210 nit 86 (52 s)
+ringF1_split3x2eq g9 start h=1/50s: ll -97996.212 nit 92 (56 s)
+done ringF1_split3x2drv: ll -97986.462 (grid 9), h 1/186 s
+done ringF1_split3x2eq: ll -97996.210 (grid 9), h 1/7 s
+total 106 s

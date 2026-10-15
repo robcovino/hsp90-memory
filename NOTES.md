@@ -706,6 +706,61 @@ skeleton-independent). sigma and tau_w are effective parameters: the data do not
 molecule-intrinsic 4.5-min coordinate, and the gating skeleton is wrong at 5-10 min. One-page summary:
 `results/audit/one_pager.md`.
 
+## Audit step 0 (2026-10-15): mode-lifetime shape, per-molecule modulation, the 5-10 min misfit
+
+Scripts `fit_step0.py`, `fit_pertrace.py`, `step0_rate_acf.py`; results in `results/step0/`.
+
+Starting point (audit): the final model (ringF1 + equilibrium OU on kOC) is right numerically, but
+- the local closing rate decorrelates faster than any model predicts at 5-10 min;
+- the modulation is uneven between molecules.
+
+1. **Non-exponential mode lifetimes** (`amm.split_mode`: one mode replaced by two identical sub-states).
+   - Physics constraint: in an equilibrium Markov model, the time spent in any set of states is a mixture of
+     exponentials. Equilibrium sub-states can only lengthen the tail (traps); a more regular lifetime needs a
+     driven, forward-only progression, which breaks detailed balance.
+   - Results (15-point grid, change of log L vs -97918.86, one extra parameter):
+
+     | mode split | equilibrium trap | driven |
+     |---|---|---|
+     | slow | +1.3 | 0.0 |
+     | open-biased | 0.0 | +4.0 (lifetime CV 0.71) |
+     | fast | +0.1 | +10.0 (stage 191 s; lifetime 376 s, CV 0.71) |
+     | long frozen X | 0.0 | +3.5 (CV 0.74) |
+
+   - Every variant leaves the modulation unchanged: sigma_OC 0.213-0.215, tau_w 265-274 s. The mode-lifetime shape
+     does not absorb the OU gain.
+   - On the driven fast-mode skeleton the OU term is still worth +77.6 (discrete driven skeleton -97986.5, with OU
+     -97908.9), the same as on ringF1 (+77.5). The driven fast-mode lifetime gains +9.9 with and without OU (equilibrium
+     trap +0.1). The two effects are additive and independent.
+2. **The 5-10 min misfit** (`step0_rate_acf.py`: same statistic and simulator as the audit, 40 sets per model).
+   - Data ACF of the local closing rate at 1/5/8/12 min: 0.72 / 0.17 / 0.00 / -0.01.
+   - Final model: 0.70 / 0.31 / 0.16 / 0.05 (z at 5 / 8 min: -2.4 / -3.2).
+   - Driven fast-mode variant: 0.70 / 0.26 / 0.11 / 0.05 (z -1.8 / -2.3).
+   - All other variants are unchanged (z ~ -2.3 / -3.0). Short-lag ACF and the variance of the log local rate are
+     fitted by all.
+   - A more regular fast-mode lifetime closes about a third of the gap at the price of detailed balance (not expected
+     in apo). The misfit is not a mode-lifetime-shape effect alone.
+   - Remaining candidates:
+     - clock-like alternation of several modes (more stages, more modes; all driven);
+     - a hidden coordinate whose correlation is not exponential (2D or underdamped, GLE-type; equilibrium 1D z
+       cannot do it);
+     - heterogeneity between molecules, which the pooled statistic mixes (test: per-molecule simulations).
+3. **Per-molecule modulation** (`fit_pertrace.py`; rates shared; Laplace evidence, which for the shared model gives
+   -98009.9 vs bridge -98007.6, the 2.2 offset cancelling in differences).
+
+   | model | parameters | change of log L | change of log Z | sigma per molecule |
+   |---|---|---|---|---|
+   | sigma per molecule | 29 | +7.4 | -1.5 | 0.13, 0.21, 0.21, 0.34 |
+   | sigma and tau_w per molecule | 32 | +7.6 | -5.9 | (tau_w 196-278 s) |
+   | no modulation in molecule 1 | 26 | +1.3 | +0.7 | 0.25 for molecules 2-4 |
+
+   - The modulation strength differs between molecules by a likelihood-ratio test (p ~ 0.002), but not by evidence
+     (the broad sigma prior pays for 3 extra parameters).
+   - tau_w is common (~260-280 s in molecules 2-4).
+   - Molecule 1 is indistinguishable between weak and no modulation.
+4. **Open, for Hugel:** were the four traces recorded simultaneously? This decides whether a common external drive
+   can be tested (the audit found zero-lag cross-correlations of E[z](t) of -0.25 to 0.32).
+
 ## Next steps
 
 Status 2026-10-15. Phase 1 is done (SBI v1/v2 plus the exact-likelihood programme above). Final model: ringF1 + an

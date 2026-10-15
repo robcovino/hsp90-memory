@@ -6,7 +6,7 @@
     transition-state free energies G_ij = G_i - ln(k_ij / k0) (detailed balance makes G_ij = G_ji). k0 = 1e6 s^-1 is an
     arbitrary attempt frequency: only differences between barriers are meaningful.
 (c) free energy along the hidden slow coordinate z (exact marginals of the full model): open and closed surfaces,
-    and the opening-rate modulation kOC(z) = kOC exp(sigma z).
+    and the closing-rate (O->C) modulation kOC(z) = kOC exp(sigma z).
 Usage: python scripts/plot_model_physchem.py  -> figures/model_physchem.{png,pdf}
 """
 import json
@@ -158,7 +158,7 @@ ins.set_xlabel("z", fontsize=7, labelpad=1); ins.set_ylabel(r"$k_\mathrm{OC}(z)/
 ins.spines[["top", "right"]].set_visible(False)
 ax.text(0.27, 0.83, f"σ = {sig:.2f},  τ$_w$ = {tau:.0f} s\nclosing tilts z (detailed balance)", transform=ax.transAxes,
         fontsize=8, va="top", color=INK)
-ax.set_title("c   Slow modulation of the opening rate", loc="left", fontsize=10, fontweight="bold")
+ax.set_title("c   Slow modulation of the closing rate (O→C)", loc="left", fontsize=10, fontweight="bold")
 
 fig.suptitle(f"Hsp90 (apo) conformational kinetics: best model ringF1 + slow disorder  "
              f"(exact-likelihood ML, log L = {d['ll']:.1f}; 4 × 6 h, 25,571 dwells)", fontsize=10.5, x=0.01, ha="left")

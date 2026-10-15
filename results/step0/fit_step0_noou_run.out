@@ -1,0 +1,7 @@
+ringF1_split3x2drv g9 start h=1/100s: ll -97986.477 nit 41 (34 s)
+ringF1_split3x2drv g9 start h=1/20s: ll -97986.462 nit 66 (48 s)
+ringF1_split3x2eq g9 start h=1/300s: ll -97996.210 nit 86 (52 s)
+ringF1_split3x2eq g9 start h=1/50s: ll -97996.212 nit 92 (56 s)
+done ringF1_split3x2drv: ll -97986.462 (grid 9), h 1/186 s
+done ringF1_split3x2eq: ll -97996.210 (grid 9), h 1/7 s
+total 106 s

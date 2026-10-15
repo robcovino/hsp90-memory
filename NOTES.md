@@ -640,7 +640,18 @@ Figure: `figures/model_schematic.png`.
   - Mean 95 % coverage over parameters: 0.88-0.89. sigma_OC 0.92, tau_w 0.92-0.95.
   - **Inconclusive:** the per-data-set chains had a median ESS of 24-32, so their intervals cover only part of the
     posterior. The U-shaped ranks are those of under-sampled chains.
-- **Laplace-interval coverage** on the same 40 data sets (`coverage_laplace_ringF1_oueq.json`): running (2026-10-15). Real data first: the Laplace approximation matches the MCMC posterior for the identified parameters (sd ratio 1.00 for sigma_OC, 0.97 for tau_w, 0.9-1.02 for the well-determined rates; 0.26-0.63 only for the prior-dominated ones), so Laplace intervals are representative of the reported posterior there. LAPLACE_RESULT
+- **Laplace-interval coverage** on the same 40 data sets (`coverage_laplace_ringF1_oueq.json`): running (2026-10-15). Real data first: the Laplace approximation matches the MCMC posterior for the identified parameters (sd ratio 1.00 for sigma_OC, 0.97 for tau_w, 0.9-1.02 for the well-determined rates; 0.26-0.63 only for the prior-dominated ones), so Laplace intervals are representative of the reported posterior there.
+  Result over 40 data sets (10.6 h):
+  - Identified parameters (18 of 26: Laplace/MCMC sd ratio 0.9-1.1 on the real data): coverage 0.53 / 0.81 / 0.89 /
+    0.94 at 50 / 80 / 90 / 95 %, i.e. calibrated.
+  - sigma_OC: 0.57 / 0.80 / 0.90 / 0.92; standardised error mean +0.09, sd 0.97.
+  - log tau_w: 0.45 / 0.78 / 0.88 / 0.95; sd 1.00 but mean +0.47. The truth lies on average half a posterior sd
+    above the estimate (tau_w ~12 % too short), plausibly from inferring on a 7-point grid data simulated on 15
+    points; the real-data analysis used 9 and 15 points.
+  - The 8 prior-dominated parameters (hub and frozen-state rates, some switching rates) undercover: 0.75 at 95 %.
+    Expected, since Laplace is only 0.26-0.77 as wide as the MCMC posterior there; those parameters are reported as
+    unidentified.
+  - A fully sampled MCMC coverage (e.g. 12 data sets x 64,000 steps) would take ~8 h on this VM.
 
 ### Caveats
 

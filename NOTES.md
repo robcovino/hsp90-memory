@@ -1,7 +1,17 @@
 # Hsp90 plasmon-ruler traces — analysis notes
 
-Date: 2026-10-11 (updated same day with the Vollmar et al. reading). Folder: `pulling hsp90/`. Scripts in `analysis/`,
-figures in `figures/`, fitted models in `results/`.
+Started 2026-10-11; wrapped up 2026-10-15. Code in `src/hsp90memory/` and `scripts/`, results in `results/`, figures in
+`figures/`.
+
+**Current state: see "Project summary (wrap-up, 2026-10-15)" and "Open problems" near the end.**
+
+The sections are chronological, and later sections supersede earlier conclusions where they say so:
+- data and AMM fits (2026-10-11);
+- Phase 0 identifiability;
+- Phase 1 SBI (v1, v2);
+- the exact-likelihood programme;
+- the independent audit;
+- audit step 0.
 
 ## Question
 
@@ -758,44 +768,78 @@ Starting point (audit): the final model (ringF1 + equilibrium OU on kOC) is righ
      (the broad sigma prior pays for 3 extra parameters).
    - tau_w is common (~260-280 s in molecules 2-4).
    - Molecule 1 is indistinguishable between weak and no modulation.
-4. **Open, for Hugel:** were the four traces recorded simultaneously? This decides whether a common external drive
+4. **Heterogeneity does not explain the 5-10 min misfit** (`step0_pertrace_acf.py`).
+   - Setup: rates and tau_w fixed at the final model; sigma re-fitted per trace: 0.12, 0.21, 0.20, 0.31 (gain over no
+     modulation +4.7, +19.5, +22.5, +42.9).
+   - Each trace simulated with its own sigma: pooled z at 5 / 8 min is -2.7 / -3.3 (shared: -2.9 / -3.7; trace 1
+     unmodulated: -2.8 / -3.0).
+   - Per trace at 8 min: data ACF -0.18, -0.04, +0.18, -0.11 (consistent with zero, sd ~0.12); model z -2.8, -1.7,
+     +0.3, -2.8.
+   - The excess persistence is within molecules (traces 1, 2, 4) and is not a pooling artefact.
+   - By 8 min the data have lost the correlation that every model retains (~0.15).
+5. **Open, for Hugel:** were the four traces recorded simultaneously? This decides whether a common external drive
    can be tested (the audit found zero-lag cross-correlations of E[z](t) of -0.25 to 0.32).
 
-## Next steps
+## Project summary (wrap-up, 2026-10-15)
 
-Status 2026-10-15. Phase 1 is done (SBI v1/v2 plus the exact-likelihood programme above). Final model: ringF1 + an
-equilibrium OU modulator on kOC.
+Question: what generates the memory in the open-closed dynamics of apo Hsp90 (four plasmon-ruler traces, 6 h at
+10 Hz, 25,571 dwells)?
 
-0. **From the audit (before more calibration).** The 5-10 min misfit of the local closing-rate ACF, shared by ringF1
-   and ringF1 + OU: test non-exponential mode lifetimes (chains of identical states) and whether they absorb part
-   of the OU gain. Per-molecule sigma in the evidence (trace 1). Ask Hugel whether the four traces were recorded
-   simultaneously (decides the common-drive test).
+Answer, with the exact dwell-sequence likelihood. Every result below has evidence, cross-validation, posterior-predictive
+checks and coverage, and the main numbers were reproduced by an independent audit.
 
-1. **Calibration to publication standard.** The per-data-set MCMC coverage was under-sampled (ESS ~24).
-   - Options: longer chains on a subset (e.g. 12 data sets x 64,000 steps, ~6-7 h on this VM), or a sampler with
-     better mixing for the 26-dimensional posterior (parallel tempering, or gradients via automatic differentiation of
-     the forward pass).
-   - The Laplace-interval coverage (above) is the current calibration for the identified parameters.
-2. **Robustness of the network.**
-   - Evidence of full5 + OU: it is +7 out of sample, so weak extra connections are possible.
-   - A six-mode search.
-   - Per-trace fits of the final model (molecule-to-molecule variation of sigma_OC and tau_w; trace 1 does not prefer
-     the modulation).
-3. **Kinetic landscape (Phase 2, partly answered).**
-   - What is settled: the slow coordinate couples to kOC only, log-linearly with sigma ~ 0.22, and it is the same
-     coordinate in every mode.
-   - Next: a spline coupling kOC(z) and a mode-dependent sigma.
-   - A second coordinate (2D grid: ~100 x 10 states, still exact), or SBI for 2D/GLE modulators.
-4. **ATP traces** (when available).
-   - The driven-cycle test (ring without balance) and the equilibrium vs non-equilibrium coupling of z are ready to
-     run.
-   - The apo result (balanced cycle, eq. coupling) is the reference.
-5. **Paper figures:** model schematic (done); the comparison table; posterior-predictive panels of the final model vs
-   ring + OU (CK plateau); attribution by trace.
+1. **Gating modes on a cycle.** Discrete gating modes (slow, open-biased, fast) and a frozen state form a cycle
+   through a short-lived frozen hub: hub - slow - open-biased - fast - hub, with the long frozen state attached to the
+   hub.
+   - Detailed balance holds: no driven circulation (+0.04 log L when released).
+   - This network reproduces all 113 summary statistics, including the 2-3 min Chapman-Kolmogorov plateau
+     (Vollmar's shoulder), which needs the two-stage frozen state.
+2. **The closing rate drifts within every mode.**
+   - Form: kOC_m exp(sigma z), with z a slow equilibrium coordinate.
+   - sigma = 0.22 [0.19, 0.26], i.e. about +-25 %; tau_w = 296 s [196, 448].
+   - Strength of evidence: +77 log L for 2 parameters on every network tested; evidence +72; held-out log L +76.
+   - Fixed rates within discrete modes are ruled out; discrete ladders and a two-level switch fit worse with more
+     parameters.
+   - The summary-statistic SBI comparison could not see this; it had leaned discrete, a prior-volume effect.
+3. **Limits.**
+   - The drift is uneven between molecules: sigma 0.12-0.31, molecule 1 indistinguishable from none; a common sigma
+     is preferred by evidence, a per-molecule sigma by the likelihood ratio.
+   - The gain is concentrated in a few half-hour stretches.
+   - The local closing rate decorrelates faster at 5-10 min than any model predicts, within molecules.
+   - sigma and tau_w are therefore effective parameters, not yet properties of one stationary coordinate.
+
+Final model in code: `amm.modal_ou(0, n_grid=15, couple="eq", topology="ringF1")`, parameters
+`results/exact/fit_ringF1_oueq_global.json`; posterior `results/exact/bayes_ringF1_oueq.json`; schematic
+`figures/model_schematic.png`; comparison table `results/exact/summary_table.md`; audit `results/audit/one_pager.md`.
+
+## Open problems and next steps (after wrap-up)
+
+1. **The 5-10 min misfit of the local closing rate** (within molecules; the models keep ~0.15 at 8 min, the data
+   ~0).
+   - Candidates:
+     - several modes alternating in a clock-like (driven) way; a driven fast-mode lifetime closes a third of the gap,
+       but apo should be balanced;
+     - a hidden coordinate whose correlation is not exponential (2D z, or an underdamped/GLE modulator; SBI is the
+       tool if the state space gets large);
+     - slow non-stationarity of the measurement.
+   - Under equilibrium Markov dynamics the ACF of the local rate must decay monotonically and stay non-negative, so
+     significant anti-correlation would be decisive; it is not significant in these four traces.
+2. **More molecules.** The parallel-ruler ensemble and the 24-h traces would decide whether every molecule drifts
+   (molecule 1 does not visibly), and allow a hierarchical model of sigma.
+3. **Calibration.** Laplace coverage is nominal for the identified parameters. A fully sampled MCMC coverage
+   (~8 h for 12 data sets) or a better-mixing sampler remains to be done.
+4. **Network completeness.** The fully connected five-mode model is +7 out of sample; its evidence is not computed.
+   Six-mode networks were not explored.
+5. **ATP traces.** The driven-cycle test (ring without balance), the equilibrium vs non-equilibrium coupling of z,
+   and the mode network vs nucleotide are ready to run.
+6. **Ask Hugel** whether the four apo traces were recorded simultaneously (common-drive test) and for the acquisition
+   details (exposure; decimation from a faster rate).
+
 - Ask Hugel, in one email: the ATP traces (33,000 transitions); the smFRET traces under matching conditions; the 24 h
   traces and parallel-ruler ensemble; acquisition details (exposure time; whether the 10-Hz series is decimated from a
   faster acquisition — the absence of straddle frames suggests so). kHz bursts would make intra-well dynamics and the
   diffusive model meaningful.
+
 
 
 ## Files (repository `hsp90-memory/`)

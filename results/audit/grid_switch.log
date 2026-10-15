@@ -1,0 +1,9 @@
+grid 2 start 'g15 optimum': ll=-97929.514 sigma=0.173 tau=238.9 nit=17 12s
+grid 2 start 'sigma x1.6': ll=-97929.515 sigma=0.173 tau=240.3 nit=26 19s
+grid 2 start 'sigma x0.7, tau x0.4': ll=-97929.518 sigma=0.174 tau=238.4 nit=23 16s
+grid 3 start 'g15 optimum': ll=-97993.715 sigma=0.237 tau=296.1 nit=33 46s
+grid 3 start 'sigma x1.6': ll=-97993.664 sigma=0.239 tau=316.1 nit=53 62s
+grid 3 start 'sigma x0.7, tau x0.4': ll=-97967.061 sigma=0.130 tau=229.2 nit=48 63s
+grid 5 start 'g15 optimum': ll=-97923.164 sigma=0.201 tau=178.6 nit=24 61s
+grid 5 start 'sigma x1.6': ll=-97923.167 sigma=0.201 tau=178.8 nit=23 55s
+grid 5 start 'sigma x0.7, tau x0.4': ll=-97923.166 sigma=0.201 tau=177.7 nit=24 64s

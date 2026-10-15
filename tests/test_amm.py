@@ -99,3 +99,17 @@ def test_graph_reproduces_ring_and_is_balanced():
         m = amm.named_graph(name); Q = m.Q(m.init + rng.normal(0, 0.5, m.n_par))
         F = amm.stationary(Q)[:, None] * Q; np.fill_diagonal(F, 0)
         assert np.abs(F - F.T).max() < 1e-12 * F.max()
+
+
+def test_split_mode_balance():
+    """Equilibrium sub-state chain keeps detailed balance; the driven chain breaks it; OU can be layered on top."""
+    g = amm.named_graph("ringF1"); rng = np.random.default_rng(3); th = g.init + rng.normal(0, 0.3, g.n_par)
+    for driven in (False, True):
+        sm = amm.split_mode(g, 3, 2, driven=driven); Q = sm.Q(np.r_[th, np.log(0.01)])
+        F = amm.stationary(Q)[:, None] * Q; np.fill_diagonal(F, 0)
+        asym = np.abs(F - F.T).max() / F.max()
+        assert (asym > 1e-6) if driven else (asym < 1e-12)
+        assert sm.K == g.K + 2 and sm.n_par == g.n_par + 1
+    mo = amm.modal_ou(0, n_grid=5, couple="eq", base=amm.split_mode(g, 3, 2))
+    Q = mo.Q(np.r_[th, np.log(0.01), np.log(0.3), np.log(200.0)]); F = amm.stationary(Q)[:, None] * Q; np.fill_diagonal(F, 0)
+    assert np.abs(F - F.T).max() < 1e-12 * F.max()

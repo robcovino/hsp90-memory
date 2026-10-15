@@ -1,0 +1,6 @@
+check p=1/2 vs modal_ou g2 at the g15 optimum: -97938.5742 -97938.5742
+start p=0.5: ll=-97929.045 sigma=0.176 tau=238.9 p=0.575 kOC ratio high/low=1.43 nit=13 9s
+start p=0.2: ll=-97929.041 sigma=0.175 tau=241.3 p=0.576 kOC ratio high/low=1.43 nit=44 29s
+start p=0.8: ll=-97929.043 sigma=0.175 tau=241.7 p=0.576 kOC ratio high/low=1.43 nit=33 25s
+start p=0.07: ll=-97929.057 sigma=0.176 tau=237.7 p=0.580 kOC ratio high/low=1.43 nit=36 27s
+start p=0.93: ll=-97929.037 sigma=0.175 tau=242.5 p=0.575 kOC ratio high/low=1.43 nit=42 32s

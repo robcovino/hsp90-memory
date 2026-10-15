@@ -655,10 +655,55 @@ Figure: `figures/model_schematic.png`.
 - The CK plateau and the long-dwell tails rest on few long frozen episodes in four molecules.
 - Trace 1 does not prefer the modulation.
 
+## Independent audit of the main result (2026-10-14/15, `results/audit/`, `scripts/audit_*.py`)
+
+Numerics (independent agent, own loader/threshold/frame-level forward algorithm, no repo likelihood code):
+- ln L reproduced to < 1e-4 for ringF1 and ringF1_oueq (grids 15, 21, 31). Threshold anywhere in 40-60 % of the gap
+  gives identical sequences. Q checked: detailed balance to 3e-14, only O->C rates carry exp(sigma z_i), z has unit
+  variance and relaxation time tau_w in the open state.
+- Grid convergence at fixed theta: 5: -97925.0, 9: -97918.3, 15: -97918.9, 31: -97919.2, 61: -97919.3.
+- Laplace evidence (flat directions capped at the prior box): dln Z = +71.8 vs bridge +71.9. Occam factor of
+  (sigma, tau_w) = -6.4. MCMC not converged in the hub/frozen-mode directions (R-hat up to 1.47 for ringF1, 1.31 for
+  ringF1_oueq; sigma and tau_w at 1.005): do not quote intervals for those rates; dln Z unaffected.
+- CV is out of sample (refit on 3 traces); minor leakage (starts from pooled ML; grid 9).
+- The OU term gives the same parameters on every skeleton (sigma 0.21-0.22, tau_w 264-270 s) and similar gains:
+  modal4 +76.8, ring4 +78.8, ringF1 +77.5, modal5 +93.7.
+Form of the hidden variable (`grid_switch.json`, `switch2.json`):
+- Symmetric two-level switch (n_grid 2): ln L -97929.5 (sigma 0.17, tau 239 s); asymmetric switch (k = 27):
+  -97929.0, p = 0.58, kOC ratio 1.43; grid 5: -97923.2; continuous (grid 15): -97918.9. Continuous beats any
+  two-level switch by ~10 in ln L with fewer parameters. Rare large excursions (degenerate 3-point grid,
+  z = +-15 with population 0.2 %): -97967, much worse.
+Robustness:
+- Merging all interior 1-frame dwells (25,571 -> 21,965 dwells) and refitting: gain +48.3 (vs +78.0 at grid 9),
+  sigma 0.18, tau_w 335 s. The effect survives; ~40 % of it involves the shortest events.
+- No instrumental signature in the episodes that carry the gain: open/closed levels within 2e-4 of the trace
+  medians, peak widths normal (`episodes.json`). Smoothed E[z](t): no trend, ACF ~0.5 at 4.5 min, zero-lag
+  cross-correlation between traces -0.25 to 0.32 (no common drive, if the traces were simultaneous — unknown).
+Problems found:
+1. Heterogeneity / intermittency. Per-trace gain -3.2, 19.6, 26.6, 34.5 (held-out -7.4, 18.9, 29.9, 34.6). Per-trace
+   sigma profile (other parameters fixed, `sigma_per_trace.json`): trace 1 best near 0.1 with gain ~0; traces 2-3 at
+   0.2; trace 4 at 0.3-0.35. Five of 48 half-hour blocks carry 71 % of the gain (one block, trace 3 at 5.0-5.5 h,
+   +21.3). Against 40 data sets simulated from the fitted model: trace 1 below all, top-5 share above all (max
+   0.70), total gain at the 2.5th percentile (model predicts a median 124). The stationary Gaussian modulator
+   shared by all molecules over-states regularity.
+2. Local closing rate (1-min windows, pooled Spearman ACF, `rate_acf.json`): data 0.72, 0.55, 0.41, 0.17, 0.00 at
+   1, 2, 3, 5, 8 min. ringF1 predicts 0.28 at 5 min and 0.15 at 8 min (z = -2.4, -3.0); ringF1_oueq 0.30 and 0.16
+   (z = -3.1, -3.1). Both models are too persistent at 5-10 min and the OU term does not help. Three of four traces
+   go slightly negative at 8-12 min.
+Verdict: the computation is right and fixed rates within discrete modes are rejected (dln Z = +72, held out +76,
+skeleton-independent). sigma and tau_w are effective parameters: the data do not establish a stationary,
+molecule-intrinsic 4.5-min coordinate, and the gating skeleton is wrong at 5-10 min. One-page summary:
+`results/audit/one_pager.md`.
+
 ## Next steps
 
 Status 2026-10-15. Phase 1 is done (SBI v1/v2 plus the exact-likelihood programme above). Final model: ringF1 + an
 equilibrium OU modulator on kOC.
+
+0. **From the audit (before more calibration).** The 5-10 min misfit of the local closing-rate ACF, shared by ringF1
+   and ringF1 + OU: test non-exponential mode lifetimes (chains of identical states) and whether they absorb part
+   of the OU gain. Per-molecule sigma in the evidence (trace 1). Ask Hugel whether the four traces were recorded
+   simultaneously (decides the common-drive test).
 
 1. **Calibration to publication standard.** The per-data-set MCMC coverage was under-sampled (ESS ~24).
    - Options: longer chains on a subset (e.g. 12 data sets x 64,000 steps, ~6-7 h on this VM), or a sampler with

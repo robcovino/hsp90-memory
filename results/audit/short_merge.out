@@ -1,0 +1,4 @@
+dwells after merging 1-frame events: 21965 (min interior dwell 2 frames)
+ringF1: ll start -88968.74 -> -88654.034 nit=83 29s
+ringF1_oueq_g9: ll start -88805.14 -> -88605.706 sigma=0.179 tau=334.8 nit=121 653s
+gain filtered 48.3 vs unfiltered (grid 9) 78.0

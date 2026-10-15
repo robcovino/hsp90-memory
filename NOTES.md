@@ -443,7 +443,7 @@ Model posterior (`scripts/phase1_classify.py --name v2`; `results/phase1_classes
 - The data are typical for the simulations: their nearest-neighbour distance to the training set is exceeded by
   55 % of the held-out simulations.
 
-Conclusions of v2 (these change the plan):
+Conclusions of v2 (these change the plan; 1-2 superseded by the exact-likelihood programme below):
 1. The v1 preference for continuous within-mode disorder came from comparing against modal3 and against ML plug-ins.
    Within the set {modal3-OU, modal4-OU, modal4, modal5}, inferred with the same machinery and checked
    symmetrically, the summaries prefer discrete modal gating:
@@ -464,38 +464,242 @@ Caveats:
 - The NPEs over-concentrate slightly for the sharpest rates.
 - The model set is not exhaustive (no GLE-gated class; no modal5-OU; no hour-scale tier).
 
+## Exact-likelihood programme (2026-10-12 to 10-15): continuous kOC modulation on a cyclic mode network
+
+Why. The Phase 1 v2 summary-based model posterior (discrete over continuous, 19:1) turned out to be prior-dominated
+(see SBI reconciliation below). Where the likelihood is tractable it must decide. A 1D OU modulator discretised on a
+grid is a finite AMM (Conclusions 3), so continuous within-mode disorder and discrete ladders can be compared on the
+full dwell sequence.
+
+### Methods
+
+All in `src/hsp90memory/amm.py` and `scripts/`; 16 tests pass.
+
+- **Exact likelihood:** `amm.loglik_Q(Q, classes, dwells)`.
+  - Numba forward pass on the eigendecomposition of the within-class blocks of expm(Q dt), O(k^2) per dwell.
+  - Equals `amm.loglik` to 1e-10 and is ~10x faster.
+  - `amm.loglik_terms` gives per-dwell predictive terms.
+- **Grid-OU models:** `amm.modal_ou(..., couple, topology)`.
+  - One unit-variance OU coordinate z multiplies kOC_m by exp(sigma_OC z) in every mode.
+  - Square-root approximation of the Fokker-Planck operator for U(z) = z^2/2, rescaled to exactly unit variance and
+    slowest relaxation time tau_w. **Gauge: unit variance, tau_w = slowest relaxation.**
+  - couple='eq': z relaxes in z^2/2 when open and in z^2/2 - sigma z when closed, so detailed balance holds exactly
+    (flux asymmetry 1e-16). couple='OC': z is independent of the conformation (the SBI simulator's model; not balanced).
+  - Validation, step 1: sigma -> 0 reproduces modal-K exactly.
+  - Validation, step 2: an independent cumulative-power implementation and a frame-by-frame HMM agree (the difference
+    is the first-frame term).
+  - Validation, step 3: simulated exactly from its generator, the model is indistinguishable from
+    `simulate_modal_ou_fast` (sigma_CO = 0) on all 113 summaries (max |z| 2.65), and the test has power (half sigma
+    rejected, |z| 4.9).
+  - Validation, step 4: grid convergence. log L changes by 0.6 from 7 to 15 points and by 0.25 from 15 to 31.
+- **Grid policy:** ML on 15 points. Evidences sampled on 9 points and corrected to 21 points
+  (log E[exp(ll21 - ll9)], about -0.75).
+- **Mode networks:**
+  - `amm.modal`: chain.
+  - `amm.ring`: cycle, with detailed balance on every square and around the ring; db=False gives a driven cycle.
+  - `amm.graph` / `named_graph`: any graph, with one balance constraint per independent cycle through a spanning tree.
+    Named graphs: ringL1, ringL2, ringS2 (discrete kOC ladders off the fast mode), ringF1 (ring + a mode on the frozen
+    state), full5 (all 10 pairs).
+- **Bayesian inference:** `scripts/bayes_exact.py`.
+  - Priors, data-independent: every free rate log-uniform on [1e-7, 1e2] s^-1; sigma_OC U[0, 2]; tau_w log-U[1, 1e4] s.
+  - MCMC: 4 chains, adaptive Metropolis in logit space. Andrieu-Thoms scale and covariance adaptation from 2026-10-13
+    (earlier runs: Haario).
+  - Evidence: bridge sampling per chain; the chain spread is the error. Validated against brute-force integration
+    for modal1 (both -110901.526).
+- **ML search:** `fit_exact.py`, `fit_ladder.py`, `fit_graph.py`, with multi-start and basin-hopping.
+  - **Pitfall:** L-BFGS from one family of starts stopped in local optima for modal6, modal7, the chain-5 + OU model
+    and the first ringF1 fit.
+  - MCMC found the better peaks each time. Reported ML values are the best of optimisation and MCMC
+    (`scripts/_fits.best_fit_file`).
+- **Checks:** `exact_cv.py` (leave-one-trace-out), `exact_attribution.py`, `exact_coverage.py` (per-data-set MCMC),
+  `exact_coverage_laplace.py`, exact posterior-predictive checks via `phase1_ppc_classes.py label:exact:tag`.
+- **Table and figure:** `exact_summary.py` writes `results/exact/summary_table.md`. `plot_model_schematic.py` writes
+  `figures/model_schematic.{png,svg}`.
+
+### Model comparison
+
+n = 25,571 dwells; k = number of parameters; log Z with OU models corrected to the 21-point grid; held-out =
+leave-one-trace-out CV.
+
+| model | description | k | max log L | BIC | log Z | Δlog Z | held-out log L (CV) | note |
+|---|---|---|---|---|---|---|---|---|
+| modal3 | chain of 3 modes | 12 | -98360.5 | 196842.7 | -98416.3 | -407.8 | — |  |
+| modal4 | chain of 4 modes | 17 | -98133.7 | 196439.9 | -98206.3 | -197.8 | -98177.2 (cv_v4) |  |
+| modal5 | chain of 5 modes | 22 | -98092.3 | 196407.9 | -98181.8 | -173.4 | -98146.6 (cv_v5) |  |
+| modal6 | chain of 6 modes | 27 | -98058.0 | 196390.1 | -98162.5 | -154.1 | -98115.8 (cv_v4) |  |
+| modal7 | chain of 7 modes | 32 | -98013.2 | 196351.2 | -98157.2 | -148.7 | -98087.9 (cv_v5) | multimodal posterior: log Z of the dominant sampled mode |
+| modal3_ou | chain 3 + OU on kOC | 14 | -98217.0 | 196576.1 | — | — | — |  |
+| modal4_ou | chain 4 + OU on kOC (non-eq.) | 19 | -98056.6 | 196306.0 | -98134.0 | -125.6 | -98101.2 (cv_v4) |  |
+| modal4_oueq | chain 4 + OU on kOC (eq.) | 19 | -98056.9 | 196306.6 | -98134.3 | -125.8 | -98100.3 (cv_v5) |  |
+| modal4_ou2 | chain 4 + OU on kOC and kCO | 20 | -98056.4 | 196315.7 | — | — | — |  |
+| modal5_oueqF | chain 5 + OU (eq.) | 24 | -97998.6 | 196240.9 | -98127.8 | -119.4 | -98052.5 (cv_v6) | log Z from an inferior peak (ML -98034.7 at the time) |
+| ring4 | ring of 4 modes | 19 | -98050.0 | 196292.8 | -98125.6 | -117.1 | -98097.3 (cv_v6) |  |
+| ring4_noDB | ring of 4, cycle not balanced | 20 | -98050.2 | 196303.4 | — | — | — |  |
+| ringL1 | ring 4 + 1 discrete kOC ladder mode | 24 | -98007.7 | 196259.0 | -98100.6 | -92.1 | -98064.4 (cv_v5) |  |
+| ringL2 | ring 4 + 2-step discrete kOC ladder | 29 | -97977.3 | 196249.0 | -98084.9 | -76.4 | -98037.9 (cv_v5) |  |
+| ringS2 | ring 4 + 2 discrete kOC branches | 29 | -97976.3 | 196246.9 | -98084.3 | -75.8 | -98042.0 (cv_v6) |  |
+| ringF1 | ring 4 + second frozen state | 24 | -97996.3 | 196236.2 | -98080.3 | -71.8 | -98040.0 (cv_v6) |  |
+| ring4_oueq | ring 4 + OU on kOC (eq.) | 21 | -97971.2 | 196155.4 | -98052.1 | -43.7 | -98017.1 (cv_v6) |  |
+| ring4_noDB_oueq | ring 4 + OU, cycle not balanced | 22 | -97971.1 | 196165.5 | — | — | -98022.8 (cv_v5) |  |
+| ringF1_oueq | ring 4 + second frozen state + OU (eq.) | 26 | -97918.9 | 196101.6 | -98008.4 | 0.0 | -97964.1 (cv_v6) |  |
+| full5_oueq | all 10 connections of 5 modes + OU (eq.) | 36 | -97909.2 | 196183.7 | — | — | -97957.0 (cv_v6) | likelihood ceiling for 5 modes |
+
+### Final model: ringF1 + equilibrium OU on kOC
+
+26 parameters; ML -97918.9 (15-point grid); log Z -98008.4 (chains -98007.4 to -98008.0).
+
+Gating network. Five modes:
+
+| mode | mean open | mean closed | share of time |
+|---|---|---|---|
+| slow | 15 s | 4.6 s | 40 % |
+| open-biased | 19 s | 1.0 s | 18 % |
+| fast | 1.4 s | 0.8 s | 29 % |
+| long frozen state X | no transitions, mostly open | | 11 % (exits after ~4 min) |
+| transient frozen hub | no transitions | | 2 % (lifetime <= ~3 s; exit rates bounded only from below) |
+
+- X connects only to the hub. The hub connects to slow and fast.
+- Cycle: hub - slow - open-biased - fast - hub.
+- Switching events per day: hub-slow ~256, fast-hub ~53, hub-X ~45, slow-open-biased ~42, open-biased-fast ~17.
+
+Within-mode modulation:
+
+- **sigma_OC = 0.22 [0.19, 0.26]** (90 %): kOC varies by about +-25 % at 1 sd.
+- **tau_w = 296 s [196, 448]** (R-hat 1.005, ESS > 450).
+- The closed->open rate is not modulated: adding sigma_CO gained 0.2 on the chain skeleton.
+
+Figure: `figures/model_schematic.png`.
+
+### Findings
+
+1. **Continuous modulation of kOC within the gating modes is decisive and does not depend on the skeleton.**
+   - One OU coordinate (2 parameters) raises log L by 77-79 on every skeleton tested: chain of 4, ring of 4, and
+     ring + second frozen state.
+   - sigma_OC 0.21-0.22 and tau_w 267-296 s throughout.
+   - Within the SBI v2 classes the NPE agrees: modal4-OU sigma_OC 0.23 [0.08, 0.32].
+2. **Discrete ladders do not substitute.**
+   - Same ring skeleton: two-step discrete kOC ladders (ringL2, ringS2; 29 parameters) reach -97976 to -97977 vs
+     -97971 for ring + OU (21 parameters).
+   - Evidence: 32 lower. Held-out log L: 21-25 lower.
+   - Chain ladders up to 7 modes stay below chain-4 + OU in evidence.
+3. **The gating modes form a cycle.**
+   - In the chain-5 + OU optimum the two end modes were identical fast modes: the frozen side connects directly to
+     the fast mode.
+   - The ring of four gains 84 over the chain of four (discrete, +2 parameters) and 85 with OU.
+4. **Detailed balance holds; no driven gating cycle in apo Hsp90.**
+   - Dropping the balance constraint around the ring gains 0.036 log-units (likelihood-ratio statistic 0.07); out of
+     sample it is worse by 5.8.
+   - Equilibrium and non-equilibrium couplings of z to the conformation are indistinguishable (log Z -98134.3 vs
+     -98134.0 on chain 4).
+   - The equilibrium version is the physically appropriate model and is the one reported.
+5. **The frozen state is two-staged.**
+   - The second frozen state gains 52 log-units for 5 parameters on the ring + OU skeleton; evidence +43.7.
+   - It is what reproduces the Chapman-Kolmogorov plateau at 30-140 s, Vollmar's shoulder and the Phase 1 v2 residual:
+     ring + OU leaves z ~ 3 there.
+   - Posterior-predictive check of the final model: 4/113 statistics outside the 95 % band, none with |z| > 2.2,
+     sum z^2 = 40. For comparison: ring + OU 11/113 and 117; chain-5 + OU 7/113 and 84.
+6. **The five-mode network is nearly complete.**
+   - Connecting all ten pairs (full5 + OU, 36 parameters) gains 9.7 in log L; BIC is 82 worse.
+   - It predicts held-out traces better by 7.0, with the same sign on all four traces (+2.5, +3.6, +0.4, +0.5).
+   - Weak extra connections are possible; their evidence was not computed. The modulation parameters do not depend on
+     it.
+7. **Where the gain is (attribution, per-dwell predictive terms at the ML).**
+   - Final model vs its discrete version: +77.5, almost all in open dwells (+73.1).
+   - Per trace: -3.2, +19.6, +26.6, +34.5. Trace 1 is indifferent; traces 2-4 carry the evidence.
+   - The modulation improves the prediction of each open dwell given its history: a slowly drifting closing rate.
+8. **Cross-validation (cv_v6, held-out log L relative to the final model).**
+
+   | model | held-out log L |
+   |---|---|
+   | ring + OU | -53.0 |
+   | ringF1 (discrete) | -75.9 |
+   | ringS2 | -78.0 |
+   | chain-5 + OU | -88.5 |
+   | ring4 | -133.3 |
+   | full5 + OU | +7.0 |
+
+### SBI reconciliation
+
+- **The Phase 1 v2 classifier odds (discrete 19:1) were a prior-volume effect.**
+  - The class priors were centred on each class's own ML fit, and the OU class carried 4 broad extra parameters.
+  - Restricting the OU prior to the region holding 85 % of its posterior (sigma_OC <= 0.5, sigma_CO <= 0.2,
+    tau_w 30-3000 s) gives 1.3:1 (`results/phase1_classes/prior_sensitivity_v2.json`).
+- **The summaries cannot decide what the dwell-sequence likelihood decides by 77 log-units.**
+  - Parameter posteriors agree where both exist.
+  - Lesson: with non-sufficient summaries and empirical-Bayes class priors, a calibrated classifier can be confidently
+    wrong about the class.
+  - Use the exact likelihood wherever it exists. SBI remains the tool for classes without one (2D or GLE modulators,
+    measurement physics).
+- **The Phase 1 v2 conclusions 1-2 are superseded by this section.**
+
+### Calibration
+
+- **MCMC coverage** (`coverage_ringF1_oueq.json`, `coverage_modal4_oueq.json`).
+  - Setup: parameter draws from the data posterior, exact simulation on a 15-point grid, re-inference with a
+    7-point-grid MCMC.
+  - Mean 95 % coverage over parameters: 0.88-0.89. sigma_OC 0.92, tau_w 0.92-0.95.
+  - **Inconclusive:** the per-data-set chains had a median ESS of 24-32, so their intervals cover only part of the
+    posterior. The U-shaped ranks are those of under-sampled chains.
+- **Laplace-interval coverage** on the same 40 data sets (`coverage_laplace_ringF1_oueq.json`): running (2026-10-15). Real data first: the Laplace approximation matches the MCMC posterior for the identified parameters (sd ratio 1.00 for sigma_OC, 0.97 for tau_w, 0.9-1.02 for the well-determined rates; 0.26-0.63 only for the prior-dominated ones), so Laplace intervals are representative of the reported posterior there. LAPLACE_RESULT
+
+### Caveats
+
+- Model posteriors are conditional on the model set. The skeleton search covered chains of 3-7 modes, rings, ring
+  ladders, ringF1 and the full five-mode graph; six-mode networks were not explored.
+- Evidence of a multimodal posterior (modal7) is a dominant-peak estimate.
+- Unidentified rates mix slowly (R-hat up to 1.3):
+  - the hub's exit rates and its O<->C rates;
+  - the frozen-state O<->C rates;
+  - some switching rates.
+  Evidences are stable across chains (spread <= 0.6 for the final models).
+- The CK plateau and the long-dwell tails rest on few long frozen episodes in four molecules.
+- Trace 1 does not prefer the modulation.
+
 ## Next steps
 
-- Phase 1 done: v1 (modal3-OU) and v2 (modal3-OU with extended tau_w, modal4-OU, modal4, modal5). NPE + SBC per
-  class, symmetric posterior-predictive checks, calibrated model posterior. See the two sections above.
-- Next, in order of information per CPU hour:
-  1. The common CK residual (plateau to ~70 s, sharp drop at 100–300 s from q0 = open). Add a CK-shape statistic at
-     finer lags (the summary vector has 24 log-spaced lags; ~8 fall in 30–300 s), and test whether a sixth mode with
-     a 2–3 min dwell, or a non-exponential (e.g. periodic-like or gamma-distributed) mode lifetime, reproduces it. A
-     gamma-distributed mode lifetime is a chain of identical states: it stays within AMMs.
-  2. Robustness of the 19:1 discrete-vs-continuous odds to the OU priors (sigma U[0, 0.5]; tau_w log-U[10, 3000] s),
-     by reweighting the existing modal4-OU simulations (no new runs needed), and a modal5-OU class only if the odds
-     move.
-  3. Paper-grade posteriors for the preferred class (modal5): NPE ensemble or sequential NPE around the data;
-     posterior over the fast-mode split.
-  4. The GLE-gated class (optional; NOTES "open questions" 1).
-  `summaries.summary_vector` now costs 0.14 s and the simulator 0.1 s per measurement: 10^5 simulations take
-  ~2 h on this VM with 4 workers.
+Status 2026-10-15. Phase 1 is done (SBI v1/v2 plus the exact-likelihood programme above). Final model: ringF1 + an
+equilibrium OU modulator on kOC.
+
+1. **Calibration to publication standard.** The per-data-set MCMC coverage was under-sampled (ESS ~24).
+   - Options: longer chains on a subset (e.g. 12 data sets x 64,000 steps, ~6-7 h on this VM), or a sampler with
+     better mixing for the 26-dimensional posterior (parallel tempering, or gradients via automatic differentiation of
+     the forward pass).
+   - The Laplace-interval coverage (above) is the current calibration for the identified parameters.
+2. **Robustness of the network.**
+   - Evidence of full5 + OU: it is +7 out of sample, so weak extra connections are possible.
+   - A six-mode search.
+   - Per-trace fits of the final model (molecule-to-molecule variation of sigma_OC and tau_w; trace 1 does not prefer
+     the modulation).
+3. **Kinetic landscape (Phase 2, partly answered).**
+   - What is settled: the slow coordinate couples to kOC only, log-linearly with sigma ~ 0.22, and it is the same
+     coordinate in every mode.
+   - Next: a spline coupling kOC(z) and a mode-dependent sigma.
+   - A second coordinate (2D grid: ~100 x 10 states, still exact), or SBI for 2D/GLE modulators.
+4. **ATP traces** (when available).
+   - The driven-cycle test (ring without balance) and the equilibrium vs non-equilibrium coupling of z are ready to
+     run.
+   - The apo result (balanced cycle, eq. coupling) is the reference.
+5. **Paper figures:** model schematic (done); the comparison table; posterior-predictive panels of the final model vs
+   ring + OU (CK plateau); attribution by trace.
 - Ask Hugel, in one email: the ATP traces (33,000 transitions); the smFRET traces under matching conditions; the 24 h
   traces and parallel-ruler ensemble; acquisition details (exposure time; whether the 10-Hz series is decimated from a
   faster acquisition — the absence of straddle frames suggests so). kHz bursts would make intra-well dynamics and the
   diffusive model meaningful.
 
+
 ## Files (repository `hsp90-memory/`)
 
 - `src/hsp90memory/` — `io.py` (loading, idealisation), `amm.py` (AMM likelihood, fitting), `simulators.py` (AMM and
   nested modal-OU simulators, numpy reference and numba), `summaries.py` (summary statistics incl. CK divergence).
-  `tests/` — 11 tests, `pytest`.
+  `tests/` — 16 tests, `pytest`.
 - `scripts/` — `run_fits.py`, `run_general_seeded.py`, `predictive_checks.py`, `phase0_simulate.py`, `phase0_refit.py`,
   `phase0_analyse.py`, `phase1_simulate.py` (checkpointed simulation driver), `phase1_smoke_report.py`,
   `phase1_npe.py` (NPE, SBC, TARP, posterior for the data), `phase1_ppc.py` (v1 posterior-predictive checks vs
   modal3/4), `phase1_ppc_classes.py` (symmetric checks across classes), `phase1_classify.py` (model posterior),
-  `fit_modal5.py`, `run_phase1_v2.sh` (the v2 pipeline);
+  `fit_modal5.py`, `run_phase1_v2.sh` (the v2 pipeline); exact-likelihood programme: `fit_exact.py`, `fit_ladder.py`,
+  `fit_graph.py`, `bayes_exact.py`, `exact_cv.py`, `exact_attribution.py`, `exact_coverage.py`,
+  `exact_coverage_laplace.py`, `exact_summary.py`, `plot_model_schematic.py`, `thin_samples.py`, `_fits.py`,
+  `run_exact_pipeline{,2,3,4,5}.sh`;
   `scripts/diagnostics/` — the model-free diagnostics (`plot_trace.py`, `within_state.py`,
   `dwell_memory.py`, `sticking_test.py`).
 - `results/*.json` — fitted generators Q, stationary distributions, log L, BIC; `results/phase0/` — summary vectors
@@ -504,7 +708,9 @@ Caveats:
   `results/phase1_m5/`: `settings.json`, logs, trained NPEs (`npe_<tag>.pt`), calibration (`npe_<tag>.json`,
   `npe_<tag>_sbc.npz`), posterior samples for the data (`npe_<tag>_posterior_data.npz`); simulation batches are not
   committed. `results/phase1_classes/`: symmetric posterior-predictive checks and the classifier.
-  `results/modal5.json`, `modal5_seeds.json`.
+  `results/modal5.json`, `modal5_seeds.json`. `results/exact/`: ML fits (`fit_*.json`), posteriors and evidences
+  (`bayes_*.json`; full samples not committed, thinned copies in `results/exact/thin/`), CV (`cv_v*.json`),
+  attribution, coverage, `summary_table.md`, pipeline logs.
 - `figures/` — `1Thermal_overview.png`, `within_state.png`, `predictive_checks.png`, `phase0_identifiability.png`.
 - Data: `data/1Thermal.txt` … `4Thermal.txt` (not committed; Zenodo 12697153).
 

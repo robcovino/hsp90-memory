@@ -842,6 +842,29 @@ Final model in code: `amm.modal_ou(0, n_grid=15, couple="eq", topology="ringF1")
 
 
 
+## Time-reversal test on the dwell sequence (2026-10-16, `scripts/reversibility_test.py`, `results/reversibility/`)
+
+Why: step 0 found that the only skeleton change that helps is a driven, clock-like fast-mode lifetime (+10 log L for
+one parameter, CV 0.71 < 1, impossible for any equilibrium Markov aggregate). The 5-10 min closing-rate misfit points
+the same way. A model-free check of detailed balance on the observed sequence:
+- In equilibrium, the joint law of (open dwell, the closed dwell k places after it) equals that of (open dwell, the
+  closed dwell k places before it). Statistic: D_k = Spearman(O, C_after_k) - Spearman(O, C_before_k), k = 0..10,
+  pooled over traces. Null: 200 data sets from the final model (detailed balance exact), posterior draws.
+- Adjacent pairs (k = 0): no asymmetry (D_0 = -0.001; 2D histogram KL p = 0.45).
+- k = 4-10 (about 0.5-1 min): D_k = -0.015 to -0.032 at every lag, z -1.4 to -3.8; joint sum z^2 = 36, exceeded by
+  0 of 200 null sets. Mean D over k = 4-10: -0.020 vs null sd 0.006 (z -3.2). Open dwells correlate more with the
+  closed dwells before them than with those after them.
+- Checks: null mean ~0 (< 0.002); reversing the data flips the sign; same with Pearson on log dwells; survives merging
+  1-frame dwells.
+- But per molecule (mean D over k = 4-10): -0.022, -0.045, -0.032, +0.007. The spread between molecules (sd 0.022)
+  exceeds the model's (0.013; 5 % of null sets as large): the same overdispersion as the modulation strength. Using
+  only the data's own between-molecule variance, t = -2.1 with 3 df, p = 0.12.
+Verdict: a hint of broken time-reversal symmetry at 0.5-1 min, significant against the fitted equilibrium model,
+not significant once molecules may differ freely. Three weak signals now point the same way (this asymmetry, the
+driven fast-mode lifetime, the 5-10 min misfit); none is decisive with four molecules. Apo Hsp90 has no fuel, so if
+real this would point to the measurement (illumination, tether) or to non-Markovian hidden dynamics. Decisive data:
+more molecules; a control without protein dynamics (AMP-PNP lock, or a rigid ruler); illumination-power dependence.
+
 ## Files (repository `hsp90-memory/`)
 
 - `src/hsp90memory/` — `io.py` (loading, idealisation), `amm.py` (AMM likelihood, fitting), `simulators.py` (AMM and
